@@ -59,19 +59,35 @@ def photon_std_from_mean(m):
 
 def lognormal_parms(m):
     s = photon_std_from_mean(m)
-    mu = np.log(m / np.sqrt(1 + s**2/m**2))
-    sigma = np.sqrt(np.log(1 + s**2/m**2))
+
+    mu = np.empty_like(m, dtype=float)
+    sigma = np.empty_like(s, dtype=float)
+
+    gt0 = m > 0
+    m_gt0 = m[gt0]
+    s_gt0 = s[gt0]
+
+    x = 1 + s_gt0**2 / m_gt0**2
+    mu[gt0] = np.log(m_gt0 / np.sqrt(x))
+    sigma[gt0] = np.sqrt(np.log(x))
+    mu[~gt0] = -np.inf
+    sigma[~gt0] = 0
+
     return mu, sigma
 
 
-def lognormal(m):
-    mu, sigma = lognormal_parms(m)
+def lognormal(m, params=np.empty((0, 2)), precision=0.):
+    if not (precision and params.size):
+        mu, sigma = lognormal_parms(m)
+    else:
+        idx = np.round(m / precision).astype(int)
+        mu, sigma = params[idx].T
     return np.random.lognormal(mu, sigma)
 
 
-def experiment(eff, photons):
+def experiment(eff, photons, ln_params=np.empty((0, 2)), precision=0.):
     acc_p = eff * photons
     don_p = (1 - eff) * photons
-    acc_p_noisy = lognormal(acc_p)
-    don_p_noisy = lognormal(don_p)
+    acc_p_noisy = lognormal(acc_p, ln_params, precision)
+    don_p_noisy = lognormal(don_p, ln_params, precision)
     return don_p_noisy, acc_p_noisy

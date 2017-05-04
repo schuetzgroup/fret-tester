@@ -1,7 +1,7 @@
 import numpy as np
 import numba
 
-from .numpy_sim import photon_std_from_mean
+from .sim_numpy import photon_std_from_mean
 
 
 @numba.jit(nopython=True)
@@ -55,6 +55,9 @@ photon_std_from_mean_nb = numba.jit(photon_std_from_mean, nopython=True)
 
 @numba.jit(nopython=True)
 def lognormal_parms(m):
+    if m <= 0:
+        return -np.inf, 0
+
     s = photon_std_from_mean_nb(m)
     mu = np.log(m / np.sqrt(1 + s**2/m**2))
     sigma = np.sqrt(np.log(1 + s**2/m**2))
@@ -62,18 +65,22 @@ def lognormal_parms(m):
 
 
 @numba.jit(nopython=True)
-def lognormal(m):
-    mu, sigma = lognormal_parms(m)
+def lognormal(m, params=np.empty((0, 2)), precision=0.):
+    if not (precision and params.size):
+        mu, sigma = lognormal_parms(m)
+    else:
+        idx = round(m / precision)
+        mu, sigma = params[idx]
     return np.random.lognormal(mu, sigma)
 
 
 @numba.jit(nopython=True)
-def experiment(eff, photons):
+def experiment(eff, photons, ln_params=np.empty((0, 2)), precision=0.):
     data_points = len(eff)
     ret_a = np.empty(data_points)
     ret_d = np.empty(data_points)
     for i in range(data_points):
         e = eff[i]
-        ret_d[i] = lognormal((1 - e) * photons)
-        ret_a[i] = lognormal(e * photons)
+        ret_d[i] = lognormal((1 - e) * photons, ln_params, precision)
+        ret_a[i] = lognormal(e * photons, ln_params, precision)
     return ret_d, ret_a
