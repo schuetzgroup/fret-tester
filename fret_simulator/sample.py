@@ -49,7 +49,7 @@ def sample_p_vals(life_times, efficiencies, sample_rate, data_points, photons,
 
             ret = np.concatenate([r.get() for r in ares])
 
-    return ks_to_p_val(ret.reshape(shape), data_points, experiment_data.size)
+    return p_val_from_ks(ret.reshape(shape), data_points, experiment_data.size)
 
 
 def sample_p_vals_numpy(life_times, efficiencies, sample_rate, data_points,
@@ -87,6 +87,6 @@ def sample_p_vals_numba(life_times, efficiencies, sample_rate, data_points,
     ret[0] = ks_numba.ks_2samp(e, experiment_data)
 
 
-def ks_to_p_val(ks, n1, n2):
+def p_val_from_ks(ks, n1, n2):
     f = n1 * n2 / (n1 + n2)
     return scipy.special.kolmogorov(np.sqrt(f) * ks)
