@@ -8,7 +8,7 @@ from . import sim_numba, sim_numpy, ks_numba
 
 
 def sample_p_vals(life_times, efficiencies, sample_rate, data_points, photons,
-                  experiment_data, photon_precision=0.1, engine="numpy",
+                  experiment_data, photon_precision=0.1, engine="numba",
                   n_cpus=multiprocessing.cpu_count()):
     lt, ef = np.broadcast_arrays(life_times.T, efficiencies)
     shape = lt.shape[:-1]
