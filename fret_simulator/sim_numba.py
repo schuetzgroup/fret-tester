@@ -55,8 +55,8 @@ photon_std_from_mean_nb = numba.jit(photon_std_from_mean, nopython=True)
 
 @numba.jit(nopython=True)
 def lognormal_parms(m):
-    if m <= 0:
-        return -np.inf, 0
+    if m <= 0.:
+        return -np.inf, 0.
 
     s = photon_std_from_mean_nb(m)
     mu = np.log(m / np.sqrt(1 + s**2/m**2))
