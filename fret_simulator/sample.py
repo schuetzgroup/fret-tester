@@ -1,14 +1,13 @@
 import multiprocessing
 
 import numpy as np
-import numba
 import scipy
 
-from . import sim_numba, sim_numpy, ks_numba
+from . import sim_numpy
 
 
 def sample_p_vals(life_times, efficiencies, sample_rate, data_points, photons,
-                  experiment_data, photon_precision=0.1, engine="numba",
+                  experiment_data, photon_precision=0.1,
                   n_cpus=multiprocessing.cpu_count()):
     lt, ef = np.broadcast_arrays(life_times, efficiencies)
     shape = lt.shape[:-1]
@@ -24,16 +23,10 @@ def sample_p_vals(life_times, efficiencies, sample_rate, data_points, photons,
     else:
         lognorm_params = np.empty((0, 2))
 
-    if engine == "numpy":
-        work_func = sample_p_vals_numpy
-    elif engine == "numba":
-        work_func = sample_p_vals_numba
-    else:
-        raise ValueError('engine has to be one of {"numpy", "numba"}')
-
     if n_cpus <= 1:
-        ret = work_func(lt, ef, sample_rate, data_points, photons,
-                        experiment_data, lognorm_params, photon_precision)
+        ret = sample_p_vals_numpy(lt, ef, sample_rate, data_points, photons,
+                                  experiment_data, lognorm_params,
+                                  photon_precision)
     else:
         with multiprocessing.Pool(n_cpus) as pool:
             # split data into `n_cpus` chunks. Crude, but probably sufficient.
@@ -44,7 +37,7 @@ def sample_p_vals(life_times, efficiencies, sample_rate, data_points, photons,
             for l, e in zip(lt_s, ef_s):
                 args = (l, e, sample_rate, data_points, photons,
                         experiment_data, lognorm_params, photon_precision)
-                r = pool.apply_async(work_func, args)
+                r = pool.apply_async(sample_p_vals_numpy, args)
                 ares.append(r)
 
             ret = np.concatenate([r.get() for r in ares])
@@ -66,25 +59,6 @@ def sample_p_vals_numpy(life_times, efficiencies, sample_rate, data_points,
         ks, p = scipy.stats.ks_2samp(e, experiment_data)
         ret[i] = ks
     return ret
-
-
-@numba.guvectorize([(numba.float64[:], numba.float64[:], numba.float64[:],
-                     numba.int64[:], numba.float64[:], numba.float64[:],
-                     numba.float64[:, :], numba.float64[:], numba.float64[:])],
-                   "(n),(n),(),(),(),(l),(m, j),()->()",
-                   nopython=True, target="cpu")
-def sample_p_vals_numba(life_times, efficiencies, sample_rate, data_points,
-                        photons, experiment_data, lognorm_params,
-                        photon_precision, ret):
-    tt, te = sim_numba.two_state_truth(life_times, efficiencies,
-                                       data_points[0]/sample_rate[0])
-    st, se = sim_numba.sample(tt, te, data_points[0], sample_rate[0])
-    d, a = sim_numba.experiment(se, photons[0], lognorm_params,
-                                photon_precision[0])
-    e = np.empty_like(d)
-    for i in range(data_points[0]):
-        e[i] = a[i] / (a[i] + d[i])
-    ret[0] = ks_numba.ks_2samp(e, experiment_data)
 
 
 def p_val_from_ks(ks, n1, n2):
