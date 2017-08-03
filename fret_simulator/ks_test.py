@@ -74,7 +74,7 @@ def batch_test(test_times, efficiencies, exposure_time, data_points,
 
             ret = np.concatenate([r.get() for r in ares])
 
-    return p_val_from_ks(ret.reshape(shape).T, data_points,
+    return p_val_from_ks(np.reshape(ret, shape).T, data_points,
                          experiment_data.size)
 
 
@@ -112,19 +112,16 @@ def batch_test_worker(test_times, efficiencies, exposure_time, data_points,
 
     Returns
     -------
-    numpy.ndarray
+    list
         KS statics returned by KS tests
     """
-    ret = np.empty(test_times.shape[0], dtype=float)
-    dur = data_points * exposure_time
-    for i, (lt, ef) in enumerate(zip(test_times, efficiencies)):
-        truth = time_trace.two_state_truth(lt, ef, dur)
-        st, se = time_trace.sample(*truth, exposure_time, data_points)
-        d, a = time_trace.experiment(se, photons, donor_brightness,
-                                     acceptor_brightness)
-        e = a / (d+a)
-        ks, p = scipy.stats.ks_2samp(e, experiment_data)
-        ret[i] = ks
+    ret = []
+    for lt, ef in zip(test_times, efficiencies):
+        d = time_trace.simulate_dataset(lt, ef, exposure_time, data_points,
+                                        photons, donor_brightness,
+                                        acceptor_brightness)
+        ks, p = scipy.stats.ks_2samp(d.exp_eff, experiment_data)
+        ret.append(ks)
     return ret
 
 
