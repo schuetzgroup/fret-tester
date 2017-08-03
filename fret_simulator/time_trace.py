@@ -1,5 +1,7 @@
 # Copyright 2017 Lukas Schrangl
 """Tools for simulating two-state smFRET time traces"""
+from collections import namedtuple
+
 import numpy as np
 import scipy
 
@@ -173,3 +175,70 @@ def experiment(eff, photons, donor_brightness, acceptor_brightness):
     acc_p_noisy = acceptor_brightness(acc_p)
     don_p_noisy = donor_brightness(don_p)
     return don_p_noisy, acc_p_noisy
+
+
+DataSet = namedtuple("DataSet", ["true_time", "true_eff",
+                                 "samp_time", "samp_eff",
+                                 "exp_don", "exp_acc", "exp_eff"])
+DataSet.__doc__ = """Named tuple containing a full data set of a simulation run
+
+Attributes
+----------
+true_time, true_eff : array_like
+    True state trajectory as produced by :py:func:`two_state_truth`
+samp_time, samp_eff : array_like
+    Sampled state trajectory as produced by :py:func:`sample`
+exp_don, exp_acc : array_like
+    (Noisy) donor and acceptor intensities as produced by
+    :py:func:`experiment`
+exp_eff : array_like
+    Experiment FRET efficiency, i.e. ``exp_acc / (exp_acc + exp_don)``
+"""
+
+
+def simulate_dataset(lifetimes, efficiencies, exposure_time, data_points,
+                     photons, donor_brightness, acceptor_brightness,
+                     truth=None):
+    """Simulate a whole data set
+
+    Consecutively run :py:func:`two_state_truth`, :py:func:`sample`, and
+    :py:func:`experiment`.
+
+    Parameters
+    ----------
+    lifetimes : array_like, shape=(2,)
+        Mean (of the exponentially distributed) life times of the states
+    efficiencies : array_like, shape=(2,)
+        FRET efficiencies for the states
+    exposure_time : float
+        Exposure time for sampling. All transition during a exposure will be
+        integrated.
+    data_points : scalar, optional
+        Number of data points to return. If the FRET time trace is too short,
+        the maximum number of data points the trace allows is returned.
+        Defaults to infinity.
+    photons : float
+        Mean summed number of photons emitted by donor and acceptor per
+        exposure.
+    donor_brightness, acceptor_brightness : callable
+        Takes one argument, an array of mean brightness values. For each entry
+        `m` it returns a random value drawn from the brightness distribution
+    truth : tuple of array_like or None, optional
+        It is possible to pass the result of a :py:func:`two_state_truth`
+        call here. In this case, no new truth will be constructed (and
+        thus the `lifetimes` parameters are ignored), but this will be used.
+        Defaults to `None`.
+
+    Returns
+    -------
+    DataSet
+        Collected simulated data
+    """
+    dur = data_points * exposure_time
+    if truth is None:
+        t, e = two_state_truth(lifetimes, efficiencies, dur)
+    else:
+        t, e = truth
+    st, se = sample(t, e, exposure_time, data_points)
+    d, a = experiment(se, photons, donor_brightness, acceptor_brightness)
+    return DataSet(t, e, st, se, d, a, a/(d+a))
