@@ -6,8 +6,9 @@ import scipy
 from . import sim_numpy
 
 
-def sample_p_vals(life_times, efficiencies, sample_rate, data_points, photons,
-                  experiment_data, photon_precision=0.1,
+def sample_p_vals(life_times, efficiencies, exposure_time, data_points,
+                  photons, experiment_data, donor_brightness,
+                  acceptor_brightness,
                   n_cpus=multiprocessing.cpu_count()):
     lt, ef = np.broadcast_arrays(life_times, efficiencies)
     shape = lt.shape[:-1]
@@ -15,18 +16,10 @@ def sample_p_vals(life_times, efficiencies, sample_rate, data_points, photons,
     lt = np.reshape(lt, (-1, num_states), "C")
     ef = np.reshape(ef, (-1, num_states), "C")
 
-    # pre-calculate logarithms
-    if photon_precision > 0:
-        lognorm_params = sim_numpy.lognormal_parms(
-                np.arange(0, photons+photon_precision/2, photon_precision))
-        lognorm_params = np.array(lognorm_params).T
-    else:
-        lognorm_params = np.empty((0, 2))
-
     if n_cpus <= 1:
-        ret = sample_p_vals_numpy(lt, ef, sample_rate, data_points, photons,
-                                  experiment_data, lognorm_params,
-                                  photon_precision)
+        ret = sample_p_vals_numpy(lt, ef, exposure_time, data_points, photons,
+                                  experiment_data, donor_brightness,
+                                  acceptor_brightness)
     else:
         with multiprocessing.Pool(n_cpus) as pool:
             # split data into `n_cpus` chunks. Crude, but probably sufficient.
@@ -35,8 +28,8 @@ def sample_p_vals(life_times, efficiencies, sample_rate, data_points, photons,
 
             ares = []
             for l, e in zip(lt_s, ef_s):
-                args = (l, e, sample_rate, data_points, photons,
-                        experiment_data, lognorm_params, photon_precision)
+                args = (l, e, exposure_time, data_points, photons,
+                        experiment_data, donor_brightness, acceptor_brightness)
                 r = pool.apply_async(sample_p_vals_numpy, args)
                 ares.append(r)
 
@@ -45,16 +38,16 @@ def sample_p_vals(life_times, efficiencies, sample_rate, data_points, photons,
     return p_val_from_ks(ret.reshape(shape), data_points, experiment_data.size)
 
 
-def sample_p_vals_numpy(life_times, efficiencies, sample_rate, data_points,
-                        photons, experiment_data, lognorm_params,
-                        photon_precision):
+def sample_p_vals_numpy(life_times, efficiencies, exposure_time, data_points,
+                        photons, experiment_data, donor_brightness,
+                        acceptor_brightness):
     ret = np.empty(life_times.shape[0], dtype=float)
-    dur = data_points / sample_rate
+    dur = data_points * exposure_time
     for i, (lt, ef) in enumerate(zip(life_times, efficiencies)):
         truth = sim_numpy.two_state_truth(lt, ef, dur)
-        st, se = sim_numpy.sample(*truth, data_points, sample_rate)
-        d, a = sim_numpy.experiment(se, photons, lognorm_params,
-                                    photon_precision)
+        st, se = sim_numpy.sample(*truth, exposure_time, data_points)
+        d, a = sim_numpy.experiment(se, photons, donor_brightness,
+                                    acceptor_brightness)
         e = a / (d+a)
         ks, p = scipy.stats.ks_2samp(e, experiment_data)
         ret[i] = ks
