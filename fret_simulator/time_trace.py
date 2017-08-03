@@ -6,14 +6,14 @@ import numpy as np
 import scipy
 
 
-def two_state_truth(lifetimes, efficiencies, duration):
+def two_state_truth(life_times, efficiencies, duration):
     """Simulate ground truth smFRET time trace for a two state system
 
     Assume that the states' life times are exponentially distributed.
 
     Parameters
     ----------
-    lifetimes : array_like, shape=(2,)
+    life_times : array_like, shape=(2,)
         Mean (of the exponentially distributed) life times of the states
     efficiencies : array_like, shape=(2,)
         FRET efficiencies for the states
@@ -34,12 +34,12 @@ def two_state_truth(lifetimes, efficiencies, duration):
     --------
     make_step_function : Create step function from data returned by this
     """
-    num_states = len(lifetimes)
+    num_states = len(life_times)
     # num_events increased by 50% to be (quite) sure that we generate
     # a long enough trace in one run in the `while` loop below
-    num_events = int(duration / np.mean(lifetimes) * 1.5) // num_states
+    num_events = int(duration / np.mean(life_times) * 1.5) // num_states
 
-    prob_1 = lifetimes[0] / np.sum(lifetimes)  # prob. to start with state 1
+    prob_1 = life_times[0] / np.sum(life_times)  # prob. to start with state 1
     start_with_1 = np.random.rand() < prob_1  # whether to start with state 1
 
     time = []
@@ -50,7 +50,7 @@ def two_state_truth(lifetimes, efficiencies, duration):
     while dur < duration:
         # Generate transition times by generating exponentially distributed
         # random numbers
-        t = np.random.exponential(lifetimes, (num_events, num_states))
+        t = np.random.exponential(life_times, (num_events, num_states))
         # FRET efficiencies are constant, just broadcast the array
         e = np.broadcast_to(efficiencies, (num_events, num_states))
         if not start_with_1:
@@ -196,7 +196,7 @@ exp_eff : array_like
 """
 
 
-def simulate_dataset(lifetimes, efficiencies, exposure_time, data_points,
+def simulate_dataset(life_times, efficiencies, exposure_time, data_points,
                      photons, donor_brightness, acceptor_brightness,
                      truth=None):
     """Simulate a whole data set
@@ -206,7 +206,7 @@ def simulate_dataset(lifetimes, efficiencies, exposure_time, data_points,
 
     Parameters
     ----------
-    lifetimes : array_like, shape=(2,)
+    life_times : array_like, shape=(2,)
         Mean (of the exponentially distributed) life times of the states
     efficiencies : array_like, shape=(2,)
         FRET efficiencies for the states
@@ -236,7 +236,7 @@ def simulate_dataset(lifetimes, efficiencies, exposure_time, data_points,
     """
     dur = data_points * exposure_time
     if truth is None:
-        t, e = two_state_truth(lifetimes, efficiencies, dur)
+        t, e = two_state_truth(life_times, efficiencies, dur)
     else:
         t, e = truth
     st, se = sample(t, e, exposure_time, data_points)
