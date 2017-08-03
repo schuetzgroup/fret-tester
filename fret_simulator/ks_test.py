@@ -81,8 +81,7 @@ def batch_test(test_times, efficiencies, exposure_time, data_points,
 
             ret = np.concatenate([r.get() for r in ares])
 
-    return p_val_from_ks(np.reshape(ret, shape).T, data_points,
-                         experiment_data.size)
+    return np.reshape(ret, shape).T
 
 
 def batch_test_worker(test_times, efficiencies, exposure_time, data_points,
@@ -120,7 +119,7 @@ def batch_test_worker(test_times, efficiencies, exposure_time, data_points,
     Returns
     -------
     list
-        KS statics returned by KS tests
+        p-values returned by KS tests.
     """
     ret = []
     for lt, ef in zip(test_times, efficiencies):
@@ -128,26 +127,5 @@ def batch_test_worker(test_times, efficiencies, exposure_time, data_points,
                                         photons, donor_brightness,
                                         acceptor_brightness)
         ks, p = scipy.stats.ks_2samp(d.exp_eff, experiment_data)
-        ret.append(ks)
+        ret.append(p)
     return ret
-
-
-def p_val_from_ks(ks, n1, n2):
-    """Calculate p-value from KS statistics
-
-    resulting from two-sample KS tests.
-
-    Parameters
-    ----------
-    ks : array_like
-        KS statistics values
-    n1, n2 : int
-        Number of data points in the data sets
-
-    Returns
-    -------
-    numpy.ndarray
-        p-values corresponding to KS statistic values
-    """
-    f = n1 * n2 / (n1 + n2)
-    return scipy.special.kolmogorov(np.sqrt(f) * ks)
