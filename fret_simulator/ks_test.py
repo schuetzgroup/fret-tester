@@ -22,7 +22,7 @@ def batch_test(test_times, efficiencies, exposure_time, data_points,
     ----------
     test_times : array_like
         Life times to test experiment data against. Run simulations for each
-        set of test lifes. ``test_times[..., i]`` has to be an array of test
+        set of test lifes. ``test_times[i]`` has to be an array of test
         times for the i-th state.
     efficiencies : array_like
         Array of FRET efficiencies
@@ -46,9 +46,10 @@ def batch_test(test_times, efficiencies, exposure_time, data_points,
     -------
     numpy.ndarray
         p-values returned by KS tests. The array has the same shape as
-        the `test_times` minus the last dimension.
+        the `test_times` minus the first dimension.
     """
-    lt, ef = np.broadcast_arrays(test_times, efficiencies)
+    lt, ef = np.broadcast_arrays(np.transpose(test_times),
+                                 np.transpose(efficiencies))
     shape = lt.shape[:-1]
     num_states = lt.shape[-1]
     lt = np.reshape(lt, (-1, num_states), "C")
@@ -60,7 +61,7 @@ def batch_test(test_times, efficiencies, exposure_time, data_points,
                                 acceptor_brightness)
     else:
         with multiprocessing.Pool(nproc) as pool:
-            # split data into `n_cpus` chunks. Crude, but probably sufficient.
+            # split data into `nproc` chunks. Crude, but probably sufficient.
             lt_s = np.array_split(lt, nproc)
             ef_s = np.array_split(ef, nproc)
 
@@ -73,7 +74,8 @@ def batch_test(test_times, efficiencies, exposure_time, data_points,
 
             ret = np.concatenate([r.get() for r in ares])
 
-    return p_val_from_ks(ret.reshape(shape), data_points, experiment_data.size)
+    return p_val_from_ks(ret.reshape(shape).T, data_points,
+                         experiment_data.size)
 
 
 def batch_test_worker(test_times, efficiencies, exposure_time, data_points,
@@ -90,7 +92,8 @@ def batch_test_worker(test_times, efficiencies, exposure_time, data_points,
     test_times : array_like, shape=(n, 2)
         Life times to test experiment data against. Run simulations for each
         set of test lifes. ``test_times[i]`` a set of test life times (one
-        per state).
+        per state). This is different (transposed) from the `test_times`
+        argument of :py:func:`batch_test`.
     efficiencies : array_like, shape=(n, 2)
         Array of FRET efficiencies. Has to be of the same shape as
         `test_times`.
