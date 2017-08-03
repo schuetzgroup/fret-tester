@@ -11,7 +11,7 @@ from . import time_trace
 def batch_test(test_times, efficiencies, exposure_time, data_points,
                photons, experiment_data, donor_brightness,
                acceptor_brightness,
-               nproc=multiprocessing.cpu_count()):
+               nprocs=multiprocessing.cpu_count(), nchunks=None):
     """Test experiment data against many simulated data sets
 
     For each set of (test) life times, simulate smFRET events and compare to
@@ -38,9 +38,12 @@ def batch_test(test_times, efficiencies, exposure_time, data_points,
         Takes one argument, an array of mean brightness values. For each entry
         `m` it returns a random value drawn from the brightness distribution
         with mean `m`.
-    nproc : int, optional
+    nprocs : int, optional
         Number of processes to use for parallel simulation. Defaults to the
-        number of CPUs.
+        number of CPU threads.
+    nprocs : int or None, optional
+        Number of chunks into which to split the data for parallel
+        simulation. If `None` (default), use ``nprocs * 2``.
 
     Returns
     -------
@@ -55,15 +58,19 @@ def batch_test(test_times, efficiencies, exposure_time, data_points,
     lt = np.reshape(lt, (-1, num_states), "C")
     ef = np.reshape(ef, (-1, num_states), "C")
 
-    if nproc <= 1:
+    if nprocs <= 1:
         ret = batch_test_worker(lt, ef, exposure_time, data_points, photons,
                                 experiment_data, donor_brightness,
                                 acceptor_brightness)
     else:
-        with multiprocessing.Pool(nproc) as pool:
-            # split data into `nproc` chunks. Crude, but probably sufficient.
-            lt_s = np.array_split(lt, nproc)
-            ef_s = np.array_split(ef, nproc)
+        if not nchunks:
+            # This seems to be a smart choice according to conducted
+            # benchmarks
+            nchunks = nprocs * 2
+        with multiprocessing.Pool(nprocs) as pool:
+            # split data into `nchunks` chunks.
+            lt_s = np.array_split(lt, nchunks)
+            ef_s = np.array_split(ef, nchunks)
 
             ares = []
             for l, e in zip(lt_s, ef_s):
