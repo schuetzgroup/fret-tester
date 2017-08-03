@@ -51,36 +51,47 @@ def batch_test(test_times, efficiencies, exposure_time, data_points,
         p-values returned by KS tests. The array has the same shape as
         the `test_times` minus the first dimension.
     """
+    # Transposing is necessary for broadcasting to work in case `efficiencies`
+    # is just a 1D array. Additionally, the flattened result can be
+    # passed directly to `batch_test_worker`, which can iterate over it.
     lt, ef = np.broadcast_arrays(np.transpose(test_times),
                                  np.transpose(efficiencies))
     shape = lt.shape[:-1]
     num_states = lt.shape[-1]
+    # "Flatten" s.t. each line gives a set of life times (or efficiencies,
+    # respectively). This is necessary for the `batch_test_worker` call.
     lt = np.reshape(lt, (-1, num_states), "C")
     ef = np.reshape(ef, (-1, num_states), "C")
 
     if nprocs <= 1:
+        # If no multiprocessing is wanted, just execute the worker function
         ret = batch_test_worker(lt, ef, exposure_time, data_points, photons,
                                 experiment_data, donor_brightness,
                                 acceptor_brightness)
     else:
+        # Use multiprocessing
         if not nchunks:
             # This seems to be a smart choice according to conducted
             # benchmarks
             nchunks = nprocs * 2
         with multiprocessing.Pool(nprocs) as pool:
-            # split data into `nchunks` chunks.
+            # Split data into `nchunks` chunks.
             lt_s = np.array_split(lt, nchunks)
             ef_s = np.array_split(ef, nchunks)
 
             ares = []
             for l, e in zip(lt_s, ef_s):
+                # Async call to the worker function in the pool's processes
                 args = (l, e, exposure_time, data_points, photons,
                         experiment_data, donor_brightness, acceptor_brightness)
                 r = pool.apply_async(batch_test_worker, args)
+                # Keep the async call results
                 ares.append(r)
 
+            # Wait for the results and concatenate them
             ret = np.concatenate([r.get() for r in ares])
 
+    # Reshape to original shape and transpose again to undo intial transpose
     return np.reshape(ret, shape).T
 
 
