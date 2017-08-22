@@ -1,0 +1,209 @@
+# Copyright 2017 Lukas Schrangl
+"""Utilities for plotting results of the simulations"""
+import math
+
+import numpy as np
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+
+
+class _PlotterBase:
+    def __init__(self, **kwargs):
+        self.truth_style = ":"
+        self.truth_color = "C1"
+        self.pval_range = (1e-2, 1.)
+        self.scale = "log"
+        self.cbar_width = 0.03
+        self.time_unit = "ms"
+
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
+        if not hasattr(self, "tick_formatter"):
+            if self.scale == "log":
+                self.tick_formatter = mpl.ticker.LogFormatter()
+            else:
+                self.tick_formatter = mpl.ticker.ScalarFormatter()
+
+    def _make_axes(self, nrows, n, ax_or_subspec, fig, colorbar="on"):
+        ncols = math.ceil(n / nrows)
+
+        if ax_or_subspec is None:
+            ax_or_subspec = mpl.gridspec.GridSpec(1, 1, hspace=0)[0]
+
+        if colorbar in ("on", "empty"):
+            col_width_ratios = (((1 - self.cbar_width) / ncols,) * ncols +
+                                (self.cbar_width,))
+            n_tot = n + nrows - 1
+            if isinstance(ax_or_subspec, mpl.gridspec.SubplotSpec):
+                grid = mpl.gridspec.GridSpecFromSubplotSpec(
+                    nrows, ncols+1, ax_or_subspec,
+                    width_ratios=col_width_ratios)
+                ax = [fig.add_subplot(grid[i])
+                      for i in range(n_tot) if i % (ncols + 1) != ncols]
+                cbar_ax = (fig.add_subplot(grid[:, -1]) if colorbar == "on"
+                           else None)
+            else:
+                ax = ax_or_subspec[:-1]
+                cbar_ax = ax_or_subspec[-1]
+            return ax, cbar_ax
+        if colorbar == "off":
+            if isinstance(ax_or_subspec, mpl.gridspec.GridSpecBase):
+                grid = mpl.gridspec.GridSpecFromSubplotSpec(
+                    nrows, ncols, ax_or_subspec)
+                ax = [fig.add_subplot(grid[i]) for i in range(n)]
+            else:
+                ax = ax_or_subspec
+            return ax, None
+        raise ValueError("colorbar must be in ('on', 'off', 'empty').")
+
+
+class Plotter1D(_PlotterBase):
+    def __init__(self, **kwargs):
+        self.pval_scale = "log"
+        super().__init__(**kwargs)
+
+        if not hasattr(self, "pval_tick_formatter"):
+            if self.pval_scale == "log":
+                self.pval_tick_formatter = mpl.ticker.LogFormatterSciNotation()
+            else:
+                self.pval_tick_formatter = mpl.ticker.ScalarFormatter()
+
+    def plot(self, test_times, p_vals, truth=None, ax=None):
+        if ax is None:
+            ax = plt.gca()
+
+        axt = ax.twiny()
+        axt.plot(test_times[0], p_vals)
+
+        axt.set_ylim(*self.pval_range)
+        ax.set_xlim(np.min(test_times[1]), np.max(test_times[1]))
+
+        axt.set_xscale(self.scale)
+        ax.set_xscale(self.scale)
+        ax.set_yscale(self.pval_scale)
+
+        if truth is not None:
+            t = mpl.transforms.blended_transform_factory(axt.transData,
+                                                         axt.transAxes)
+            li = mpl.lines.Line2D([truth[0], truth[0]], [0, 1],
+                                  transform=t, color=self.truth_color,
+                                  linestyle=self.truth_style)
+            axt.add_line(li)
+
+        for a in (ax.xaxis, axt.xaxis):
+            a.set_major_formatter(self.tick_formatter)
+            a.set_minor_formatter(self.tick_formatter)
+        ax.yaxis.set_major_formatter(self.pval_tick_formatter)
+        ax.yaxis.set_minor_formatter(self.pval_tick_formatter)
+
+        axt.set_xlabel("$\\tau_1$ [{}]".format(self.time_unit))
+        ax.set_xlabel("$\\tau_2$ [{}]".format(self.time_unit))
+        ax.set_ylabel("$p$-value")
+
+        return axt
+
+    def plot_series(self, test_times, p_vals, truths=None, ax_or_subspec=None,
+                    fig=None, nrows=1, empty_cbar=False):
+        n = len(test_times)
+        ncols = math.ceil(n / nrows)
+
+        if truths is None:
+            truths = [None] * n
+        empty_cbar = "empty" if empty_cbar else "off"
+
+        ax, _ = self._make_axes(nrows, n, ax_or_subspec, fig, empty_cbar)
+
+        axt = []
+        for a, tt, p, tr in zip(ax, test_times, p_vals, truths):
+            tw = self.plot(tt, p, tr, a)
+            axt.append(tw)
+
+        for i, a in enumerate(ax):
+            if i % ncols == ncols - 1:
+                a.tick_params("y", which="both", labelright=True, right=True,
+                              labelleft=False, left=False)
+                a.yaxis.set_label_position("right")
+            else:
+                a.tick_params("y", which="both", labelright=False, right=True,
+                              labelleft=False, left=False)
+                a.yaxis.label.set_visible(False)
+        for a in axt[ncols:]:
+            a.xaxis.label.set_visible(False)
+            a.tick_params("x", which="both", labeltop=False, labelbottom=False)
+        for a in ax[:ncols*(nrows-1)]:
+            a.xaxis.label.set_visible(False)
+            a.tick_params("x", which="both", labeltop=False, labelbottom=False)
+
+        return ax, axt
+
+
+class Plotter2D(_PlotterBase):
+    def __init__(self, **kwargs):
+        self.norm = mpl.colors.LogNorm()
+        self.cmap = "binary"
+        super().__init__(**kwargs)
+
+    def plot(self, test_times, p_vals, truth=None, ax=None):
+        if ax is None:
+            ax = plt.gca()
+
+        m = ax.pcolormesh(test_times[0], test_times[1], p_vals.T,
+                          cmap=self.cmap, norm=self.norm,
+                          vmin=self.pval_range[0], vmax=self.pval_range[1])
+#        ax.contour(test_times[0], test_times[1], p_vals.T, [1e-6, 1e-3],
+#                   linewidths=0.1, colors="k", linestyles=[":", "--"])
+
+        if truth is not None:
+            t1 = mpl.transforms.blended_transform_factory(ax.transData,
+                                                          ax.transAxes)
+            l1 = mpl.lines.Line2D([truth[0], truth[0]], [0, 1],
+                                  transform=t1, color=self.truth_color,
+                                  linestyle=self.truth_style)
+            ax.add_line(l1)
+            t2 = mpl.transforms.blended_transform_factory(ax.transAxes,
+                                                          ax.transData)
+            l2 = mpl.lines.Line2D([0, 1], [truth[1], truth[1]],
+                                  transform=t2, color=self.truth_color,
+                                  linestyle=self.truth_style)
+            ax.add_line(l2)
+
+            ax.set_xscale(self.scale)
+            ax.set_yscale(self.scale)
+
+        for a in (ax.xaxis, ax.yaxis):
+            a.set_major_formatter(self.tick_formatter)
+            a.set_minor_formatter(self.tick_formatter)
+
+        ax.set_xlabel("$\\tau_1$ [{}]".format(self.time_unit))
+        ax.set_ylabel("$\\tau_2$ [{}]".format(self.time_unit))
+
+        return m
+
+    def plot_series(self, test_times, p_vals, truths=None, ax_or_subspec=None,
+                    fig=None, nrows=1):
+        n = len(test_times)
+        ncols = math.ceil(n / nrows)
+
+        if truths is None:
+            truths = [None] * n
+
+        if fig is None:
+            fig = plt.gcf()
+
+        ax, colorbar_ax = self._make_axes(nrows, n, ax_or_subspec, fig, "on")
+
+        for a, tt, p, tr in zip(ax, test_times, p_vals, truths):
+            m = self.plot(tt, p, tr, a)
+
+        for a in (a2 for i, a2 in enumerate(ax) if i % ncols != 0):
+            a.tick_params("y", which="both", labelright=False, labelleft=False)
+            a.yaxis.label.set_visible(False)
+        for a in ax[:ncols*(nrows-1)]:
+            a.xaxis.label.set_visible(False)
+            a.tick_params("x", which="both", labeltop=False, labelbottom=False)
+
+        fig.colorbar(m, cax=colorbar_ax)
+        colorbar_ax.set_ylabel(r"$p$-value")
+
+        return ax, colorbar_ax
