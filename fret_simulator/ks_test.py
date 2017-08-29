@@ -140,3 +140,8 @@ def _batch_test_worker(test_times, efficiencies, exposure_time, data_points,
         ks, p = scipy.stats.ks_2samp(d.exp_eff, experiment_data)
         ret.append(p)
     return ret
+
+
+def combine_test_results(results):
+    n = len(results)
+    return 1 - (1 - np.min(results, axis=0))**n
