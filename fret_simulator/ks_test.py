@@ -65,9 +65,9 @@ def batch_test(test_times, efficiencies, exposure_time, data_points,
 
     if nprocs <= 1:
         # If no multiprocessing is wanted, just execute the worker function
-        ret = batch_test_worker(lt, ef, exposure_time, data_points, photons,
-                                experiment_data, donor_brightness,
-                                acceptor_brightness)
+        ret = _batch_test_worker(lt, ef, exposure_time, data_points, photons,
+                                 experiment_data, donor_brightness,
+                                 acceptor_brightness)
     else:
         # Use multiprocessing
         if not nchunks:
@@ -84,7 +84,7 @@ def batch_test(test_times, efficiencies, exposure_time, data_points,
                 # Async call to the worker function in the pool's processes
                 args = (l, e, exposure_time, data_points, photons,
                         experiment_data, donor_brightness, acceptor_brightness)
-                r = pool.apply_async(batch_test_worker, args)
+                r = pool.apply_async(_batch_test_worker, args)
                 # Keep the async call results
                 ares.append(r)
 
@@ -95,9 +95,9 @@ def batch_test(test_times, efficiencies, exposure_time, data_points,
     return np.reshape(ret, shape).T
 
 
-def batch_test_worker(test_times, efficiencies, exposure_time, data_points,
-                      photons, experiment_data, donor_brightness,
-                      acceptor_brightness):
+def _batch_test_worker(test_times, efficiencies, exposure_time, data_points,
+                       photons, experiment_data, donor_brightness,
+                       acceptor_brightness):
     """Test experiment data against many simulated data sets (worker function)
 
     For each set of (test) life times, simulate smFRET events and compare to
