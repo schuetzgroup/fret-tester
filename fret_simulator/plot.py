@@ -14,7 +14,7 @@ class _PlotterBase:
         self.pval_range = (1e-2, 1.)
         self.scale = "log"
         self.cbar_width = 0.03
-        self.time_unit = "ms"
+        self.time_unit = None
 
         for k, v in kwargs.items():
             setattr(self, k, v)
@@ -24,6 +24,15 @@ class _PlotterBase:
                 self.tick_formatter = mpl.ticker.LogFormatter()
             else:
                 self.tick_formatter = mpl.ticker.ScalarFormatter()
+
+    @property
+    def time_unit(self):
+        return self._time_unit
+
+    @time_unit.setter
+    def time_unit(self, t):
+        self._time_unit = t
+        self._time_init_label = " [{}]".format(t) if t else ""
 
     def _make_axes(self, nrows, n, ax_or_subspec, fig, colorbar="on"):
         ncols = math.ceil(n / nrows)
@@ -78,6 +87,7 @@ class Plotter1D(_PlotterBase):
 
         axt.set_ylim(*self.pval_range)
         ax.set_xlim(np.min(test_times[1]), np.max(test_times[1]))
+        axt.set_xlim(np.min(test_times[0]), np.max(test_times[0]))
 
         axt.set_xscale(self.scale)
         ax.set_xscale(self.scale)
@@ -97,8 +107,8 @@ class Plotter1D(_PlotterBase):
         ax.yaxis.set_major_formatter(self.pval_tick_formatter)
         ax.yaxis.set_minor_formatter(self.pval_tick_formatter)
 
-        axt.set_xlabel("$\\tau_1$ [{}]".format(self.time_unit))
-        ax.set_xlabel("$\\tau_2$ [{}]".format(self.time_unit))
+        axt.set_xlabel("$\\tau_1$" + self._time_init_label)
+        ax.set_xlabel("$\\tau_2$" + self._time_init_label)
         ax.set_ylabel("$p$-value")
 
         return axt
@@ -175,8 +185,8 @@ class Plotter2D(_PlotterBase):
             a.set_major_formatter(self.tick_formatter)
             a.set_minor_formatter(self.tick_formatter)
 
-        ax.set_xlabel("$\\tau_1$ [{}]".format(self.time_unit))
-        ax.set_ylabel("$\\tau_2$ [{}]".format(self.time_unit))
+        ax.set_xlabel("$\\tau_1$" + self._time_init_label)
+        ax.set_ylabel("$\\tau_2$" + self._time_init_label)
 
         return m
 
