@@ -11,7 +11,6 @@ class _PlotterBase:
     def __init__(self, **kwargs):
         self.truth_style = ":"
         self.truth_color = "C1"
-        self.pval_range = (1e-2, 1.)
         self.scale = "log"
         self.cbar_width = 0.03
         self.time_unit = None
@@ -70,6 +69,8 @@ class _PlotterBase:
 class Plotter1D(_PlotterBase):
     def __init__(self, **kwargs):
         self.pval_scale = "log"
+        self.significance = 1e-2
+        self.pval_range = (1e-3, 1.)
         super().__init__(**kwargs)
 
         if not hasattr(self, "pval_tick_formatter"):
@@ -78,9 +79,20 @@ class Plotter1D(_PlotterBase):
             else:
                 self.pval_tick_formatter = mpl.ticker.ScalarFormatter()
 
+        def_opts = dict(color="gray", alpha=0.4, ls="None", lw=0.001)
+        def_opts.update(getattr(self, "significance_opts", {}))
+        self.significance_opts = def_opts
+
     def plot(self, test_times, p_vals, truth=None, ax=None):
         if ax is None:
             ax = plt.gca()
+
+        if self.significance > min(self.pval_range):
+            t = mpl.transforms.blended_transform_factory(ax.transAxes,
+                                                         ax.transData)
+            r = mpl.patches.Rectangle((0, 0), 1, self.significance,
+                                      transform=t, **self.significance_opts)
+            ax.add_patch(r)
 
         axt = ax.twiny()
         axt.plot(test_times[0], p_vals)
@@ -152,6 +164,7 @@ class Plotter2D(_PlotterBase):
     def __init__(self, **kwargs):
         self.norm = mpl.colors.LogNorm()
         self.cmap = "binary"
+        self.pval_range = (1e-2, 1.)
         super().__init__(**kwargs)
 
     def plot(self, test_times, p_vals, truth=None, ax=None):
