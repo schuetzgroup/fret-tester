@@ -38,6 +38,7 @@ def two_state_truth(life_times, efficiencies, duration):
     # num_events increased by 50% to be (quite) sure that we generate
     # a long enough trace in one run in the `while` loop below
     num_events = int(duration / np.mean(life_times) * 1.5) // num_states
+    num_events = num_events or 1  # minimum is one event
 
     prob_1 = life_times[0] / np.sum(life_times)  # prob. to start with state 1
     start_with_1 = np.random.rand() < prob_1  # whether to start with state 1
