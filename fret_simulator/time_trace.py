@@ -1,80 +1,99 @@
 # Copyright 2017 Lukas Schrangl
-"""Tools for simulating two-state smFRET time traces"""
+"""Tools for simulating smFRET time traces"""
 from collections import namedtuple
 
 import numpy as np
-import scipy
 
 
-def two_state_truth(life_times, efficiencies, duration):
-    """Simulate ground truth smFRET time trace for a two state system
+# Use these variables to be able to replace random number generators by
+# something deterministic for testing
+_rand = np.random.rand
+_rand_exp = np.random.exponential
 
-    Assume that the states' life times are exponentially distributed.
 
-    Parameters
-    ----------
-    life_times : array_like, shape=(2,)
-        Mean (of the exponentially distributed) life times of the states
-    efficiencies : array_like, shape=(2,)
-        FRET efficiencies for the states
-    duration : float
-        Minimum duration of the time trace. In practice, it will be a little
-        longer unless a state change occurs incidentally exactly at the
-        specified time, for which the probability is 0.
+class TwoStateExpTruth:
+    """Simulate ground truth smFRET time traces (two states, exp. lifetimes)
 
-    Returns
-    -------
-    time : numpy.ndarray
-        Time points of state changes. These are bi-exponentially distributed.
-    eff : numpy.ndarray
-        Corresponding FRET efficiencies. The `i`-th entry lasts from
-        ``time[i-1]`` (or 0 for i=0) to ``time[i]``.
-
-    See also
-    --------
-    make_step_function : Create step function from data returned by this
+    Lifetimes are exponentially distributed.
     """
-    num_states = len(life_times)
-    # num_events increased by 50% to be (quite) sure that we generate
-    # a long enough trace in one run in the `while` loop below
-    num_events = int(duration / np.mean(life_times) * 1.5) // num_states
-    num_events = num_events or 1  # minimum is one event
+    def __init__(self, lifetimes, efficiencies):
+        """Parameters
+        ----------
+        life_times : array_like, shape=(2,)
+            Mean (of the exponentially distributed) life times of the states
+        efficiencies : array_like, shape=(2,)
+            FRET efficiencies for the states
+        """
+        self.lifetimes = lifetimes
+        self.efficiencies = efficiencies
 
-    prob_1 = life_times[0] / np.sum(life_times)  # prob. to start with state 1
-    start_with_1 = np.random.rand() < prob_1  # whether to start with state 1
+    def __call__(self, duration):
+        """Create a time trace that of at least `duration` length
 
-    time = []
-    eff = []
-    dur = 0
-    # Run in a loop for the very unlikely case where not enough transitions
-    # were generated (i.e. all randomly generated life times were very short)
-    while dur < duration:
-        # Generate transition times by generating exponentially distributed
-        # random numbers
-        t = np.random.exponential(life_times, (num_events, num_states))
-        # FRET efficiencies are constant, just broadcast the array
-        e = np.broadcast_to(efficiencies, (num_events, num_states))
-        if not start_with_1:
-            # Switch columns so that state 2 is first when flatten()ing below
-            t = t[:, ::-1]
-            e = e[:, ::-1]
+        Parameters
+        ----------
+        duration : float
+            Minimum duration of the time trace. In practice, it will be
+            longer.
 
-        # Generate time series by merging the transition times
-        t = np.cumsum(t.flatten())
-        if time:
-            t += time[-1][-1]
-        time.append(t)
-        dur = t[-1]
+        Returns
+        -------
+        time : numpy.ndarray
+            Time points of state changes. These are bi-exponentially
+            distributed.
+        eff : numpy.ndarray
+            Corresponding FRET efficiencies. The `i`-th entry lasts from
+            ``time[i-1]`` (or 0 for i=0) to ``time[i]``.
 
-        # Generate FRET efficiency sequence by merging
-        eff.append(e.flatten())
+        See also
+        --------
+        make_step_function : Create step function from data returned by this
+        """
+        num_states = len(self.lifetimes)
+        # num_events increased by 50% to be (quite) sure that we generate
+        # a long enough trace in one run in the `while` loop below
+        num_events = (int(duration / np.mean(self.lifetimes) * 1.5) //
+                      num_states) or 1  # minimum is one event
 
-    time = np.concatenate(time)
-    eff = np.concatenate(eff)
+        # prob. to start in state 1
+        prob_1 = self.lifetimes[0] / np.sum(self.lifetimes)
+        start_with_1 = _rand() < prob_1  # whether to start with state 1
 
-    # Make result as short as possible while still being longer than `duration`
-    long_idx = np.nonzero(time > duration)[0][0] + 1
-    return time[:long_idx], eff[:long_idx]
+        time = []
+        eff = []
+        dur = 0
+        # Run in a loop for the very unlikely case where not enough transitions
+        # were generated (i.e. all randomly generated life times were very
+        # short)
+        while dur < duration:
+            # Generate transition times by generating exponentially distributed
+            # random numbers
+            t = _rand_exp(self.lifetimes, (num_events, num_states))
+            # FRET efficiencies are constant, just broadcast the array
+            e = np.broadcast_to(self.efficiencies, (num_events, num_states))
+            if not start_with_1:
+                # Switch columns so that state 2 is first when flatten()ing
+                # below
+                t = t[:, ::-1]
+                e = e[:, ::-1]
+
+            # Generate time series by merging the transition times
+            t = np.cumsum(t.flatten())
+            if time:
+                t += time[-1][-1]
+            time.append(t)
+            dur = t[-1]
+
+            # Generate FRET efficiency sequence by merging
+            eff.append(e.flatten())
+
+        time = np.concatenate(time)
+        eff = np.concatenate(eff)
+
+        # Make result as short as possible while still being longer than
+        # `duration`
+        long_idx = np.nonzero(time > duration)[0][0] + 1
+        return time[:long_idx], eff[:long_idx]
 
 
 def make_step_function(x, y):
@@ -91,17 +110,27 @@ def make_step_function(x, y):
 
     Parameters
     ----------
-    x, y : array_like
+    x, y : array_like, shape(n,)
         x and y axis values
 
     Returns
     -------
-    x, y : numpy.ndarray
+    x, y : numpy.ndarray, shape(2*n)
         x and y axis values for the step function.
     """
-    x2 = np.roll(np.repeat(x, 2), 1)
+    x = np.asanyarray(x)
+    y = np.asanyarray(y)
+
+    x2 = np.empty(2*x.size)
+    x2[1::2] = x
+    x2[2::2] = x[:-1]
     x2[0] = 0
-    return x2, np.repeat(y, 2)
+
+    y2 = np.empty(2*y.size)
+    y2[::2] = y
+    y2[1::2] = y
+
+    return x2, y2
 
 
 def sample(time, eff, exposure_time, data_points=np.inf):
@@ -132,18 +161,25 @@ def sample(time, eff, exposure_time, data_points=np.inf):
     sample_eff : numpy.ndarray
         Corresponding sampled FRET efficiencies
     """
-    step_t, step_eff = make_step_function(time, eff)
+    # Prepend 0 to `time`
+    t0 = np.empty(len(time)+1)
+    t0[0] = 0
+    t0[1:] = time
+
     data_points = int(min(time[-1] / exposure_time, data_points))
 
     sample_t = np.linspace(0, data_points*exposure_time, data_points+1,
                            endpoint=True)
 
-    # Integrate the step function
-    int_eff = scipy.integrate.cumtrapz(step_eff, step_t, initial=0)
+    # Integrate the efficiency step function, prepend 0
+    lifetimes = np.diff(t0)
+    int_eff = np.empty(len(t0))
+    int_eff[0] = 0
+    np.cumsum(np.multiply(lifetimes, eff), out=int_eff[1:])
     # Get integrated function at points of interest (i.e. sampling time points)
-    sample_int_eff = np.interp(sample_t, step_t, int_eff,
+    sample_int_eff = np.interp(sample_t, t0, int_eff,
                                left=np.NaN, right=np.NaN)
-    # Now take derivative which gives the integrated efficiencies between the
+    # Now take use diff to get the integrated efficiencies between the
     # sampling time points
     sample_eff = np.diff(sample_int_eff)
     # Scale correctly
@@ -197,9 +233,8 @@ exp_eff : array_like
 """
 
 
-def simulate_dataset(life_times, efficiencies, exposure_time, data_points,
-                     photons, donor_brightness, acceptor_brightness,
-                     truth=None):
+def simulate_dataset(truth, exposure_time, data_points, photons,
+                     donor_brightness, acceptor_brightness):
     """Simulate a whole data set
 
     Consecutively run :py:func:`two_state_truth`, :py:func:`sample`, and
@@ -207,10 +242,14 @@ def simulate_dataset(life_times, efficiencies, exposure_time, data_points,
 
     Parameters
     ----------
-    life_times : array_like, shape=(2,)
-        Mean (of the exponentially distributed) life times of the states
-    efficiencies : array_like, shape=(2,)
-        FRET efficiencies for the states
+    truth : callable or tuple of numpy.ndarray, shape=(n,)
+        Ground truth smFRET time trace. If this is an array, ``truth[0]``
+        should be the sequence of time points where state transitions
+        occur and ``truth[1]`` the FRET efficiency between the (i-1)-th
+        time point (or 0 for i = 0) and the i-th time point.
+        If this is callable, it should return a ground truth smFRET time
+        trace as described above. It should take one float parameter, which is
+        the minimum duration of the generated trace.
     exposure_time : float
         Exposure time for sampling. All transition during a exposure will be
         integrated.
@@ -223,12 +262,7 @@ def simulate_dataset(life_times, efficiencies, exposure_time, data_points,
         exposure.
     donor_brightness, acceptor_brightness : callable
         Takes one argument, an array of mean brightness values. For each entry
-        `m` it returns a random value drawn from the brightness distribution
-    truth : tuple of array_like or None, optional
-        It is possible to pass the result of a :py:func:`two_state_truth`
-        call here. In this case, no new truth will be constructed (and
-        thus the `lifetimes` parameters are ignored), but this will be used.
-        Defaults to `None`.
+        `m` it returns a random value drawn from the brightness distribution.
 
     Returns
     -------
@@ -236,10 +270,11 @@ def simulate_dataset(life_times, efficiencies, exposure_time, data_points,
         Collected simulated data
     """
     dur = data_points * exposure_time
-    if truth is None:
-        t, e = two_state_truth(life_times, efficiencies, dur)
+    if callable(truth):
+        t, e = truth(dur)
     else:
         t, e = truth
+
     st, se = sample(t, e, exposure_time, data_points)
     d, a = experiment(se, photons, donor_brightness, acceptor_brightness)
     return DataSet(t, e, st, se, d, a, a/(d+a))
