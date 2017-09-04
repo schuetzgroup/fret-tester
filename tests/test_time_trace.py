@@ -77,19 +77,6 @@ class TestTwoStateExpTruth(unittest.TestCase):
         assert(len(e) >= 1)
 
 
-class TestMakeStepFunction(unittest.TestCase):
-    """Test the `make_step_function` function"""
-    def test_call(self):
-        """time_trace.make_step_function: Basic functionality"""
-        x = [1, 2, 3, 4]
-        y = [0, 1, 0, 1]
-
-        x2, y2 = time_trace.make_step_function(x, y)
-
-        np.testing.assert_allclose(x2, [0, 1, 1, 2, 2, 3, 3, 4])
-        np.testing.assert_allclose(y2, [0, 0, 1, 1, 0, 0, 1, 1])
-
-
 class TestSample(unittest.TestCase):
     """Test the `sample` function"""
     def test_call(self):

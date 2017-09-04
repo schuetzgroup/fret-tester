@@ -96,43 +96,6 @@ class TwoStateExpTruth:
         return time[:long_idx], eff[:long_idx]
 
 
-def make_step_function(x, y):
-    """Turn data from :py:func:`two_state_truth` into a step function
-
-    The returned data can e.g. easily be plotted. The function works by
-    duplicating each point in the `x` and `y` arrays and shifting them by one
-    index so that for each `x` entry one has both parts of the step in `y`.
-
-    If ``x = [1, 2, 3, 4]`` and ``y = [0, 1, 0, 1]`` (meaning the data
-    jump from 0 to 1 at x=1, from 1 to 0 at x=2, …), a call to this functions
-    will return ``x = [0, 1, 1, 2, 2, 3, 3, 4]`` and
-    ``y = [0, 0, 1, 1, 0, 0, 1, 1]``.
-
-    Parameters
-    ----------
-    x, y : array_like, shape(n,)
-        x and y axis values
-
-    Returns
-    -------
-    x, y : numpy.ndarray, shape(2*n)
-        x and y axis values for the step function.
-    """
-    x = np.asanyarray(x)
-    y = np.asanyarray(y)
-
-    x2 = np.empty(2*x.size)
-    x2[1::2] = x
-    x2[2::2] = x[:-1]
-    x2[0] = 0
-
-    y2 = np.empty(2*y.size)
-    y2[::2] = y
-    y2[1::2] = y
-
-    return x2, y2
-
-
 def sample(time, eff, exposure_time, data_points=np.inf):
     """Sample the true smFRET time trace with finite exposure time
 
