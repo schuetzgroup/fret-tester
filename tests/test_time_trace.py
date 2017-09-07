@@ -3,7 +3,7 @@ import os
 
 import numpy as np
 
-from fret_simulator import time_trace
+from fret_tester import time_trace
 
 
 path, f = os.path.split(os.path.abspath(__file__))
