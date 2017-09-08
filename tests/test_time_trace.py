@@ -7,34 +7,23 @@ from fret_tester import time_trace
 
 
 path, f = os.path.split(os.path.abspath(__file__))
-data_path = os.path.join(path, "data_image")
-
-
-def fake_rand():
-    return 0
-
-
-def fake_rand_exp(m, shape):
-    return np.broadcast_to(m, shape)
 
 
 class TestTwoStateExpTruth(unittest.TestCase):
     """Test the `TwoStateExpTruth` class"""
     def setUp(self):
-        # Remove randomness from the output
-        time_trace._rand = fake_rand  # always start in state 1
-        time_trace._rand_exp = fake_rand_exp
-
         self.lifetimes = np.array([2., 4.])
         self.eff = np.array([0.8, 0.2])
+        self.truth_gen = time_trace.TwoStateExpTruth
 
     def test_call(self):
         """time_trace.TwoStateExpTruth.__call__: Basic functionality"""
-        truth = time_trace.TwoStateExpTruth(self.lifetimes, self.eff)
+        truth = self.truth_gen(self.lifetimes, self.eff)
+        truth._test = 1
 
         num_cycles = 10
         dur = num_cycles * self.lifetimes.sum()
-        t, e = truth(dur-1)
+        t, e = truth.generate(dur-1)
 
         np.testing.assert_allclose(
             t[:2*num_cycles],
@@ -50,14 +39,13 @@ class TestTwoStateExpTruth(unittest.TestCase):
         very small numbers for lifetimes.
         """
         lt_scale = 10
-        time_trace._rand_exp = lambda m, s: fake_rand_exp(m, s) / lt_scale
-
-        truth = time_trace.TwoStateExpTruth(self.lifetimes, self.eff)
+        truth = self.truth_gen(self.lifetimes, self.eff)
+        truth._test = 2
 
         dur_mult = 10
         dur = self.lifetimes.sum() * dur_mult
         num_cycles = dur_mult * lt_scale
-        t, e = truth(dur-1/lt_scale)
+        t, e = truth.generate(dur-1/lt_scale)
 
         np.testing.assert_allclose(
             t[:2*num_cycles],
@@ -70,9 +58,10 @@ class TestTwoStateExpTruth(unittest.TestCase):
 
         Make sure at least one data point is generated.
         """
-        truth = time_trace.TwoStateExpTruth(self.lifetimes, self.eff)
+        truth = self.truth_gen(self.lifetimes, self.eff)
+        truth._test = 1
 
-        t, e = truth(1)
+        t, e = truth.generate(1)
         assert(len(t) >= 1)
         assert(len(e) >= 1)
 
@@ -103,7 +92,6 @@ class TestSample(unittest.TestCase):
         t = np.linspace(0.5, 5000000.5, 5000000, endpoint=False)
         eff = [0.8, 0.2]
         e = np.tile(eff, 2500000)
-        print(e[:10])
 
         s = time_trace.sample(t, e, 1)
         np.testing.assert_allclose(s[1], np.full(4999999, 0.5),
@@ -132,16 +120,13 @@ class TestExperiment(unittest.TestCase):
 class TestSimulateDataset(unittest.TestCase):
     """Test the `simulate_dataset` function"""
     def setUp(self):
-        # Remove randomness from the output
-        time_trace._rand = fake_rand  # always start in state 1
-        time_trace._rand_exp = fake_rand_exp
-
         self.lifetimes = np.array([2., 4.])
         self.eff = np.array([0.8, 0.2])
 
     def test_call(self):
         """time_trace.simulate_dataset: Basic functionality"""
         truth = time_trace.TwoStateExpTruth(self.lifetimes, self.eff)
+        truth._test = 1
         t_ex = 3
         dp = 10000
         phot = 100
@@ -169,6 +154,7 @@ class TestSimulateDataset(unittest.TestCase):
     def test_truth_array(self):
         """time_trace.simulate_dataset: Pass array as truth parameter"""
         truth = time_trace.TwoStateExpTruth(self.lifetimes, self.eff)
+        truth._test = 1
         t_ex = 3
         dp = 10000
         phot = 100

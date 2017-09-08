@@ -5,12 +5,6 @@ from collections import namedtuple
 import numpy as np
 
 
-# Use these variables to be able to replace random number generators by
-# something deterministic for testing
-_rand = np.random.rand
-_rand_exp = np.random.exponential
-
-
 class TwoStateExpTruth:
     """Simulate ground truth smFRET time traces (two states, exp. lifetimes)
 
@@ -26,6 +20,10 @@ class TwoStateExpTruth:
         """
         self.lifetimes = lifetimes
         self.efficiencies = efficiencies
+
+        # If 1 or 2, disable random number generation and yield predictable
+        # results. See _rand_uniform and _rand_exp methods
+        self._test = 0
 
     def generate(self, duration):
         """Create a time trace that of at least `duration` length
@@ -57,7 +55,8 @@ class TwoStateExpTruth:
 
         # prob. to start in state 1
         prob_1 = self.lifetimes[0] / np.sum(self.lifetimes)
-        start_with_1 = _rand() < prob_1  # whether to start with state 1
+        # whether to start in state 1
+        start_with_1 = self._rand_uniform() < prob_1
 
         time = []
         eff = []
@@ -68,7 +67,7 @@ class TwoStateExpTruth:
         while dur < duration:
             # Generate transition times by generating exponentially distributed
             # random numbers
-            t = _rand_exp(self.lifetimes, (num_events, num_states))
+            t = self._rand_exp(self.lifetimes, (num_events, num_states))
             # FRET efficiencies are constant, just broadcast the array
             e = np.broadcast_to(self.efficiencies, (num_events, num_states))
             if not start_with_1:
@@ -97,6 +96,22 @@ class TwoStateExpTruth:
 
     def __call__(self, *args, **kwargs):
         return self.generate(*args, **kwargs)
+
+    def _rand_exp(self, m, shape):
+        if self._test == 0:
+            return np.random.exponential(m, shape)
+        if self._test == 1:
+            return np.broadcast_to(m, shape)
+        if self._test == 2:
+            return np.broadcast_to(m, shape) / 10
+        return np.random.exponential(m, shape)
+
+    def _rand_uniform(self):
+        if self._test == 0:
+            return np.random.rand()
+        if (self._test == 1) or (self._test == 2):
+            return 0
+        return np.random.rand()
 
 
 def sample(time, eff, exposure_time, data_points=np.inf):
