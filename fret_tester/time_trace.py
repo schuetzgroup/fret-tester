@@ -27,7 +27,7 @@ class TwoStateExpTruth:
         self.lifetimes = lifetimes
         self.efficiencies = efficiencies
 
-    def __call__(self, duration):
+    def generate(self, duration):
         """Create a time trace that of at least `duration` length
 
         Parameters
@@ -94,6 +94,9 @@ class TwoStateExpTruth:
         # `duration`
         long_idx = np.nonzero(time > duration)[0][0] + 1
         return time[:long_idx], eff[:long_idx]
+
+    def __call__(self, *args, **kwargs):
+        return self.generate(*args, **kwargs)
 
 
 def sample(time, eff, exposure_time, data_points=np.inf):
@@ -235,6 +238,8 @@ def simulate_dataset(truth, exposure_time, data_points, photons,
     dur = data_points * exposure_time
     if callable(truth):
         t, e = truth(dur)
+    elif hasattr(truth, "generate"):
+        t, e = truth.generate(dur)
     else:
         t, e = truth
 
