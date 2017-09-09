@@ -70,7 +70,7 @@ class TwoStateExpTruth:
             s = not s
             i += 1
             if t > duration:
-                return ret_t, ret_e
+                return ret_t[:i], ret_e[:i]
 
         # Did not produce a long enough time trace
         # Fall back to slower dynamically growing list
@@ -81,7 +81,6 @@ class TwoStateExpTruth:
             extra_t.append(t)
             extra_e.append(self.efficiencies[int(s)])
             s = not s
-            i += 1
 
         ret_t2 = np.empty(len(ret_t) + len(extra_t))
         ret_e2 = np.empty(len(ret_t) + len(extra_t))
