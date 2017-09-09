@@ -6,16 +6,9 @@ import numpy as np
 
 class LognormalBrightness:
     """Fluorophore brightness modeled by a lognormal distribution"""
-    def __init__(self, std_from_mean, max_mean=None, precision=0.):
+    def __init__(self, max_mean=None, precision=0.):
         """Parameters
         ----------
-        std_from_mean : callable
-            Takes one argument, an array of mean brightness values
-            and returns the standard deviations (widths) of the fluorophore's
-            brightness distributions corresponding to the means. This function
-            typically has to be determined experimentally e. g. by recording
-            a fluorophore's brightness distributions at different excitation
-            powers, plotting mean vs. std and fitting a model.
         max_mean : float or None
             If given (and `precision` > 0), precalculate parameters of the
             lognormal distributions (corresponding to means and matchings stds)
@@ -29,12 +22,11 @@ class LognormalBrightness:
         """
         self._cached_params = None
         self._cached_precision = precision
-        self.std_from_mean = std_from_mean
 
         if isinstance(max_mean, numbers.Number) and precision > 0.:
             # Pre-compute lognormal distribution parameters to save time later
             # (calculating log is expensive)
-            p = self._parameters(np.arange(0, max_mean+precision/2, precision))
+            p = self._parameters(np.arange(0, max_mean+precision, precision))
             self._cached_params = np.array(p).T
 
     def _parameters(self, m):
@@ -77,7 +69,7 @@ class LognormalBrightness:
 
         return mu, sigma
 
-    def __call__(self, m):
+    def generate(self, m):
         """Draw random value from the brightness distribution with given mean
 
         Parameters
@@ -97,3 +89,6 @@ class LognormalBrightness:
             idx = np.round(m / self._cached_precision).astype(int)
             mu, sigma = self._cached_params[idx].T
         return np.random.lognormal(mu, sigma)
+
+    def __call__(self, m):
+        return self.generate(m)
