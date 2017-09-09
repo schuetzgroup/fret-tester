@@ -1,13 +1,12 @@
+# Copyright 2017 Lukas Schrangl
+"""Tools for simulating smFRET time traces (numba JIT accelerated)"""
 import numba
 import numpy as np
 
 
-_two_state_exp_truth_spec = [("lifetimes", numba.float64[:]),
-                             ("efficiencies", numba.float64[:]),
-                             ("_test", numba.int64)]
-
-
-@numba.jitclass(_two_state_exp_truth_spec)
+@numba.jitclass([("lifetimes", numba.float64[:]),
+                 ("efficiencies", numba.float64[:]),
+                 ("_test", numba.int64)])
 class TwoStateExpTruth:
     """Simulate ground truth smFRET time traces (two states, exp. lifetimes)
 
@@ -50,10 +49,6 @@ class TwoStateExpTruth:
         eff : numpy.ndarray
             Corresponding FRET efficiencies. The `i`-th entry lasts from
             ``time[i-1]`` (or 0 for i=0) to ``time[i]``.
-
-        See also
-        --------
-        make_step_function : Create step function from data returned by this
         """
         # num_events increased by 50% to be (quite) sure that we generate
         # a long enough trace in one run in the `while` loop below

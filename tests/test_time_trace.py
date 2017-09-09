@@ -16,8 +16,8 @@ class TestTwoStateExpTruth(unittest.TestCase):
         self.eff = np.array([0.8, 0.2])
         self.truth_gen = time_trace.TwoStateExpTruth
 
-    def test_call(self):
-        """time_trace.TwoStateExpTruth.__call__: Basic functionality"""
+    def test_generate(self):
+        """time_trace.TwoStateExpTruth.generate: Basic functionality"""
         truth = self.truth_gen(self.lifetimes, self.eff)
         truth._test = 1
 
@@ -31,8 +31,8 @@ class TestTwoStateExpTruth(unittest.TestCase):
         np.testing.assert_allclose(e[:2*num_cycles],
                                    self.eff.tolist()*num_cycles)
 
-    def test_call_loop(self):
-        """time_trace.TwoStateExpTruth.__call__: Trigger the loop
+    def test_generate_loop(self):
+        """time_trace.TwoStateExpTruth.generate: Trigger the loop
 
         Multiple concatenated simulation runs are needed to generate a trace
         that is long enough by letting the fake random number generator return
@@ -53,8 +53,8 @@ class TestTwoStateExpTruth(unittest.TestCase):
         np.testing.assert_allclose(e[:2*num_cycles],
                                    self.eff.tolist()*num_cycles)
 
-    def test_call_short(self):
-        """time_trace.TwoStateExpTruth.__call__: Minimum length
+    def test_generate_short(self):
+        """time_trace.TwoStateExpTruth.generate: Minimum length
 
         Make sure at least one data point is generated.
         """

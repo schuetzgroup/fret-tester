@@ -1,8 +1,6 @@
 import unittest
 import os
 
-import numba
-
 from fret_tester import time_trace_numba
 from . import test_time_trace
 
@@ -16,24 +14,24 @@ class TestTwoStateExpTruth(test_time_trace.TestTwoStateExpTruth):
         super().setUp()
         self.truth_gen = time_trace_numba.TwoStateExpTruth
 
-    def test_call(self):
-        "time_trace_numba.TwoStateExpTruth.__call__: Basic functionality"
-        super().test_call()
+    def test_generate(self):
+        "time_trace_numba.TwoStateExpTruth.generate: Basic functionality"
+        super().test_generate()
 
-    def test_call_loop(self):
-        """time_trace_numba.TwoStateExpTruth.__call__: Trigger dynamic list
+    def test_generate_loop(self):
+        """time_trace_numba.TwoStateExpTruth.generate: Trigger dynamic list
 
         Fixed length does not create a simulation that is long enough,
         therefore fall back to dynamic list.
         """
-        super().test_call_loop()
+        super().test_generate_loop()
 
-    def test_call_short(self):
-        """time_trace_numba.TwoStateExpTruth.__call__: Minimum length
+    def test_generate_short(self):
+        """time_trace_numba.TwoStateExpTruth.generate: Minimum length
 
         Make sure at least one data point is generated.
         """
-        super().test_call_short()
+        super().test_generate_short()
 
     def test_init_list(self):
         """time_trace_numba.TwoStateExpTruth.__init__: Init with lists"""

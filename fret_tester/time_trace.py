@@ -42,10 +42,6 @@ class TwoStateExpTruth:
         eff : numpy.ndarray
             Corresponding FRET efficiencies. The `i`-th entry lasts from
             ``time[i-1]`` (or 0 for i=0) to ``time[i]``.
-
-        See also
-        --------
-        make_step_function : Create step function from data returned by this
         """
         num_states = len(self.lifetimes)
         # num_events increased by 50% to be (quite) sure that we generate
@@ -95,6 +91,7 @@ class TwoStateExpTruth:
         return time[:long_idx], eff[:long_idx]
 
     def __call__(self, *args, **kwargs):
+        """Synonym for :py:func:`generate`"""
         return self.generate(*args, **kwargs)
 
     def _rand_exp(self, m, shape):
