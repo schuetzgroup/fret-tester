@@ -68,13 +68,16 @@ class TestTwoStateExpTruth(unittest.TestCase):
 
 class TestSample(unittest.TestCase):
     """Test the `sample` function"""
+    def setUp(self):
+        self.sample_func = time_trace.sample
+
     def test_call(self):
         """time_trace.sample: Basic functionality"""
         t = np.arange(3, 37, 3)
         eff = [0.8, 0.2]
         e = np.array(eff*6)
 
-        s = time_trace.sample(t, e, 4)
+        s = self.sample_func(t, e, 4)
 
         f = np.array([0.75, 0.5, 0.25])
         f = np.column_stack((f, f[::-1]))
@@ -93,7 +96,7 @@ class TestSample(unittest.TestCase):
         eff = [0.8, 0.2]
         e = np.tile(eff, 2500000)
 
-        s = time_trace.sample(t, e, 1)
+        s = self.sample_func(t, e, 1)
         np.testing.assert_allclose(s[1], np.full(4999999, 0.5),
                                    atol=0., rtol=1e-10)
 

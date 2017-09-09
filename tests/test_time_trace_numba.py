@@ -39,5 +39,24 @@ class TestTwoStateExpTruth(test_time_trace.TestTwoStateExpTruth):
         tr.generate(1)
 
 
+class TestSample(test_time_trace.TestSample):
+    """Test the `sample` function"""
+    def setUp(self):
+        self.sample_func = time_trace_numba.sample
+
+    def test_call(self):
+        """time_trace_numba.sample: Basic functionality"""
+        super().test_call()
+
+    @unittest.skip("N/A")
+    def test_long_trace(self):
+        """time_trace_numba.sample: Check for rounding errors in long traces
+
+        Due to implementation differences, this is not a problem for the numba
+        based sample function.
+        """
+        super().test_long_trace()
+
+
 if __name__ == "__main__":
     unittest.main()

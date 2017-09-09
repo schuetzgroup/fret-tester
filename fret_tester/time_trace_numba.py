@@ -110,3 +110,54 @@ class TwoStateExpTruth:
         if (self._test == 1) or (self._test == 2):
             return 0
         return np.random.rand()
+
+
+@numba.njit
+def sample(time, eff, exposure_time, data_points=np.inf):
+    """Sample the true smFRET time trace with finite exposure time
+
+    This means that there will be integration over all transitions that happen
+    during a single exposure.
+
+    Parameters
+    ----------
+    time : array_like, shape=(n,)
+        Sequence of transition times as returned by :py:func:`two_state_truth`
+    eff : array_like, shape=(n,)
+        Sequence of FRET efficiencies as returned by :py:func:`two_state_truth`
+    exposure_time : float
+        Exposure time for sampling. All transition during a exposure will be
+        integrated.
+    data_points : scalar, optional
+        Number of data points to return. If the FRET time trace is too short,
+        the maximum number of data points the trace allows is returned.
+        Defaults to infinity.
+
+    Returns
+    -------
+    sample_time : numpy.ndarray
+        Time points of sampling. They are evenly spaced with `exposure_time`
+        difference.
+    sample_eff : numpy.ndarray
+        Corresponding sampled FRET efficiencies
+    """
+    num_dp = int(min(time[-1] / exposure_time, data_points))
+
+    ret_t = np.empty(num_dp)
+    ret_e = np.empty(num_dp)
+
+    t_idx = 0
+    for dp in range(0, num_dp):
+        t_end = (dp + 1) * exposure_time
+        ret_t[dp] = t_end
+
+        intens = 0.
+        t_sub = t_end - exposure_time
+        while time[t_idx] < t_end:
+            intens += (time[t_idx] - t_sub) * eff[t_idx]
+            t_sub = time[t_idx]
+            t_idx += 1
+        intens += (t_end - t_sub) * eff[t_idx]
+
+        ret_e[dp] = intens / exposure_time
+    return ret_t, ret_e
