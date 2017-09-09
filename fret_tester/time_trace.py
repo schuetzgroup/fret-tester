@@ -187,8 +187,14 @@ def experiment(eff, photons, donor_brightness, acceptor_brightness):
     """
     acc_p = eff * photons
     don_p = (1 - eff) * photons
-    acc_p_noisy = acceptor_brightness(acc_p)
-    don_p_noisy = donor_brightness(don_p)
+    if callable(acceptor_brightness):
+        acc_p_noisy = acceptor_brightness(acc_p)
+    else:
+        acc_p_noisy = acceptor_brightness.generate(acc_p)
+    if callable(donor_brightness):
+        don_p_noisy = donor_brightness(don_p)
+    else:
+        don_p_noisy = donor_brightness.generate(don_p)
     return don_p_noisy, acc_p_noisy
 
 
