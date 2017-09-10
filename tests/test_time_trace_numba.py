@@ -103,5 +103,32 @@ class TestExperiment(test_time_trace.TestExperiment):
         super().test_call()
 
 
+class TestSimulateDataset(test_time_trace.TestSimulateDataset):
+    """Test the `simulate_dataset` function"""
+    def setUp(self):
+        super().setUp()
+        self.lifetimes = np.array([2., 4.])
+        self.eff = np.array([0.8, 0.2])
+        self.truth = time_trace_numba.TwoStateExpTruth(self.lifetimes,
+                                                       self.eff)
+        self.sample_func = time_trace_numba.sample
+        self.exp_func = time_trace_numba.experiment
+        self.dataset_func = time_trace_numba.simulate_dataset
+        self.donor_gen = FluoModel(3)
+        self.acceptor_gen = FluoModel(2)
+
+    def test_call(self):
+        """time_trace_numba.simulate_dataset: Basic functionality"""
+        super().test_call()
+
+    @unittest.skip("N/A")
+    def test_truth_array(self):
+        """time_trace_numab.simulate_dataset: Pass array as truth parameter
+
+        This is not implemented for the numba-accelerated version. Skip.
+        """
+        super().test_truth_array()
+
+
 if __name__ == "__main__":
     unittest.main()

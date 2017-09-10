@@ -172,60 +172,54 @@ class TestSimulateDataset(unittest.TestCase):
     def setUp(self):
         self.lifetimes = np.array([2., 4.])
         self.eff = np.array([0.8, 0.2])
+        self.truth = time_trace.TwoStateExpTruth(self.lifetimes, self.eff)
+        self.sample_func = time_trace.sample
+        self.exp_func = time_trace.experiment
+        self.dataset_func = time_trace.simulate_dataset
+        self.donor_gen = lambda m: 3 * m
+        self.acceptor_gen = lambda m: 2 * m
 
     def test_call(self):
         """time_trace.simulate_dataset: Basic functionality"""
-        truth = time_trace.TwoStateExpTruth(self.lifetimes, self.eff)
-        truth._test = 1
+        self.truth._test = 1
         t_ex = 3
         dp = 10000
         phot = 100
 
-        def donor(m):
-            return 3 * m
-
-        def acceptor(m):
-            return 2 * m
-
-        d = time_trace.simulate_dataset(truth, t_ex, dp, phot, donor,
-                                        acceptor)
+        d = self.dataset_func(self.truth, t_ex, dp, phot,
+                              self.donor_gen, self.acceptor_gen)
 
         np.testing.assert_allclose([d.true_time, d.true_eff],
-                                   truth(dp*t_ex))
+                                   self.truth.generate(dp*t_ex))
         np.testing.assert_allclose(
             [d.samp_time, d.samp_eff],
-            time_trace.sample(d.true_time, d.true_eff, t_ex))
+            self.sample_func(d.true_time, d.true_eff, t_ex))
 
-        db, ab = time_trace.experiment(d.samp_eff, phot, donor, acceptor)
+        db, ab = self.exp_func(d.samp_eff, phot,
+                               self.donor_gen, self.acceptor_gen)
         np.testing.assert_allclose(d.exp_don, db)
         np.testing.assert_allclose(d.exp_acc, ab)
         np.testing.assert_allclose(d.exp_eff, ab/(db+ab))
 
     def test_truth_array(self):
         """time_trace.simulate_dataset: Pass array as truth parameter"""
-        truth = time_trace.TwoStateExpTruth(self.lifetimes, self.eff)
-        truth._test = 1
+        self.truth._test = 1
         t_ex = 3
         dp = 10000
         phot = 100
 
-        def donor(m):
-            return 3 * m
-
-        def acceptor(m):
-            return 2 * m
-
-        truth_array = truth(dp*t_ex)
-        d = time_trace.simulate_dataset(truth_array, t_ex, dp, phot, donor,
-                                        acceptor)
+        truth_array = self.truth.generate(dp*t_ex)
+        d = self.dataset_func(truth_array, t_ex, dp, phot,
+                              self.donor_gen, self.acceptor_gen)
 
         np.testing.assert_allclose([d.true_time, d.true_eff],
                                    truth_array)
         np.testing.assert_allclose(
             [d.samp_time, d.samp_eff],
-            time_trace.sample(d.true_time, d.true_eff, t_ex))
+            self.sample_func(d.true_time, d.true_eff, t_ex))
 
-        db, ab = time_trace.experiment(d.samp_eff, phot, donor, acceptor)
+        db, ab = self.exp_func(d.samp_eff, phot,
+                               self.donor_gen, self.acceptor_gen)
         np.testing.assert_allclose(d.exp_don, db)
         np.testing.assert_allclose(d.exp_acc, ab)
         np.testing.assert_allclose(d.exp_eff, ab/(db+ab))
