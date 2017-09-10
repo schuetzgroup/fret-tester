@@ -1,6 +1,9 @@
 import unittest
 import os
 
+import numba
+import numpy as np
+
 from fret_tester import time_trace_numba
 from . import test_time_trace
 
@@ -33,6 +36,16 @@ class TestTwoStateExpTruth(test_time_trace.TestTwoStateExpTruth):
         """
         super().test_generate_short()
 
+    def test_generate_random_seed0(self):
+        """time_trace_numba.TwoStateExpTruth.generate: Use RNG with seed 0"""
+        @numba.njit
+        def seed0():
+            # This has to be done within a JITed function
+            np.random.seed(0)
+
+        seed0()
+        super().test_generate_random_seed0()
+
     def test_init_list(self):
         """time_trace_numba.TwoStateExpTruth.__init__: Init with lists"""
         tr = self.truth_gen([2., 4.], [0.8, 0.2])
@@ -47,6 +60,15 @@ class TestSample(test_time_trace.TestSample):
     def test_call(self):
         """time_trace_numba.sample: Basic functionality"""
         super().test_call()
+
+    def test_random_input(self):
+        """time_trace_numba.sample: Use output of TwoStateExpTruth as input
+
+        Compare to the saved result of a test run. The test run was not
+        verified except using the other tests of this class, so this is more
+        a regression test than a functionality test.
+        """
+        super().test_random_input()
 
     @unittest.skip("N/A")
     def test_long_trace(self):

@@ -54,6 +54,15 @@ class TwoStateExpTruth:
         # whether to start in state 1
         start_with_1 = self._rand_uniform() < prob_1
 
+        if start_with_1:
+            # If we start with state 1, the order is already correct
+            lt_sorted = self.lifetimes
+            eff_sorted = self.efficiencies
+        else:
+            # If we start with state 2, the order needs to be reversed
+            lt_sorted = self.lifetimes[::-1]
+            eff_sorted = self.efficiencies[::-1]
+
         time = []
         eff = []
         dur = 0
@@ -63,14 +72,9 @@ class TwoStateExpTruth:
         while dur < duration:
             # Generate transition times by generating exponentially distributed
             # random numbers
-            t = self._rand_exp(self.lifetimes, (num_events, num_states))
+            t = self._rand_exp(lt_sorted, (num_events, num_states))
             # FRET efficiencies are constant, just broadcast the array
-            e = np.broadcast_to(self.efficiencies, (num_events, num_states))
-            if not start_with_1:
-                # Switch columns so that state 2 is first when flatten()ing
-                # below
-                t = t[:, ::-1]
-                e = e[:, ::-1]
+            e = np.broadcast_to(eff_sorted, (num_events, num_states))
 
             # Generate time series by merging the transition times
             t = np.cumsum(t.flatten())

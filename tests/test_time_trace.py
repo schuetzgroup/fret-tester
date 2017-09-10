@@ -9,6 +9,30 @@ from fret_tester import time_trace
 path, f = os.path.split(os.path.abspath(__file__))
 
 
+def make_two_state_exp_truth_seed0():
+    """Generate "two_state_exp_truth_seed0.npz"
+
+    Used for various tests.
+    """
+    np.random.seed(0)
+    np.random.rand()  # Determine start state. Number is 0.55... -> state 2
+    lt = np.random.exponential([4., 2.], (16, 2))  # gives a length of 120
+
+    t = np.empty((lt.size))
+    t[0::2] = lt[:, 0]
+    t[1::2] = lt[:, 1]
+    t = np.cumsum(t)
+
+    e = np.empty_like(t)
+    e[0::2] = 0.2
+    e[1::2] = 0.8
+
+    s = time_trace.sample(t, e, 3, 40)
+
+    np.savez_compressed(os.path.join(path, "two_state_exp_truth_seed0.npz"),
+                        t=t, e=e, s=s)
+
+
 class TestTwoStateExpTruth(unittest.TestCase):
     """Test the `TwoStateExpTruth` class"""
     def setUp(self):
@@ -65,6 +89,19 @@ class TestTwoStateExpTruth(unittest.TestCase):
         assert(len(t) >= 1)
         assert(len(e) >= 1)
 
+    def test_generate_random_seed0(self):
+        """time_trace.TwoStateExpTruth.generate: Use RNG with seed 0"""
+        f = np.load(os.path.join(path, "two_state_exp_truth_seed0.npz"))
+        t = f["t"]
+        e = f["e"]
+
+        truth = self.truth_gen(self.lifetimes, self.eff)
+        np.random.seed(0)
+        t_exp, e_exp = truth.generate(120)
+
+        np.testing.assert_allclose(t_exp, t)
+        np.testing.assert_allclose(e_exp, e)
+
 
 class TestSample(unittest.TestCase):
     """Test the `sample` function"""
@@ -99,6 +136,17 @@ class TestSample(unittest.TestCase):
         s = self.sample_func(t, e, 1)
         np.testing.assert_allclose(s[1], np.full(4999999, 0.5),
                                    atol=0., rtol=1e-10)
+
+    def test_random_input(self):
+        """time_trace.sample: Use output of TwoStateExpTruth as input
+
+        Compare to the saved result of a test run. The test run was not
+        verified except using the other tests of this class, so this is more
+        a regression test than a functionality test.
+        """
+        f = np.load(os.path.join(path, "two_state_exp_truth_seed0.npz"))
+        s = self.sample_func(f["t"], f["e"], 3, 40)
+        np.testing.assert_allclose(s, f["s"])
 
 
 class TestExperiment(unittest.TestCase):
