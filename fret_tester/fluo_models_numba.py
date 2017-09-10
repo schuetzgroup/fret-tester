@@ -8,12 +8,14 @@ class LognormalBrightness:
     def __init__(self, max_mean, precision):
         self._cached_precision = precision
         if max_mean > 0:
-            self._cached_params = self._parameters_loop(
-                np.arange(0, max_mean+precision, precision))
+            self._cached_params = self._parameters(
+                np.arange(0, max_mean+precision, precision)).T
         else:
             self._cached_params = np.empty((2, 0))
 
-    def _parameters(self, m):
+        self._test = 0
+
+    def _parameters_scalar(self, m):
         """Calculate lognormal parameters from desired mean
 
         Compute :math:`\mu` and :math:`\sigma` of the Gaussian distribution
@@ -44,10 +46,10 @@ class LognormalBrightness:
 
         return mu, sigma
 
-    def _parameters_loop(self, m):
+    def _parameters(self, m):
         ret = np.empty((2, m.size))
         for i in range(m.size):
-            ret[0, i], ret[1, i] = self._parameters(m[i])
+            ret[0, i], ret[1, i] = self._parameters_scalar(m[i])
         return ret
 
     def generate(self, m):
@@ -55,19 +57,26 @@ class LognormalBrightness:
         if self._cached_params.size > 0:
             for i in range(m.size):
                 idx = int(np.round(m[i] / self._cached_precision))
-                mu = self._cached_params[0, idx]
-                sigma = self._cached_params[1, idx]
-                ret[i] = np.random.lognormal(mu, sigma)
+                mu = self._cached_params[idx, 0]
+                sigma = self._cached_params[idx, 1]
+                if not self._test:
+                    ret[i] = np.random.lognormal(mu, sigma)
+                else:
+                    ret[i] = mu * sigma
         else:
             for i in range(m.size):
-                mu, sigma = self._parameters(m[i])
-                ret[i] = np.random.lognormal(mu, sigma)
+                mu, sigma = self._parameters_scalar(m[i])
+                if not self._test:
+                    ret[i] = np.random.lognormal(mu, sigma)
+                else:
+                    ret[i] = mu * sigma
         return ret
 
 
 def lognormal_jitclass(class_or_spec):
     lnspec = [("_cached_precision", numba.float64),
-              ("_cached_params", numba.float64[:, :])]
+              ("_cached_params", numba.float64[:, :]),
+              ("_test", numba.int64)]
     if isinstance(class_or_spec, type):
         return numba.jitclass(lnspec)(class_or_spec)
     else:

@@ -22,8 +22,10 @@ class LognormalBrightness:
         """
         self._cached_params = None
         self._cached_precision = precision
+        self._test = 0
 
-        if isinstance(max_mean, numbers.Number) and precision > 0.:
+        if (isinstance(max_mean, numbers.Number) and max_mean > 0. and
+                precision > 0.):
             # Pre-compute lognormal distribution parameters to save time later
             # (calculating log is expensive)
             p = self._parameters(np.arange(0, max_mean+precision, precision))
@@ -88,7 +90,11 @@ class LognormalBrightness:
         else:
             idx = np.round(m / self._cached_precision).astype(int)
             mu, sigma = self._cached_params[idx].T
-        return np.random.lognormal(mu, sigma)
+
+        if self._test:
+            return mu * sigma
+        else:
+            return np.random.lognormal(mu, sigma)
 
     def __call__(self, m):
         return self.generate(m)
