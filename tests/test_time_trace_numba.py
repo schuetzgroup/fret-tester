@@ -55,6 +55,7 @@ class TestTwoStateExpTruth(test_time_trace.TestTwoStateExpTruth):
 class TestSample(test_time_trace.TestSample):
     """Test the `sample` function"""
     def setUp(self):
+        super().setUp()
         self.sample_func = time_trace_numba.sample
 
     def test_call(self):
@@ -78,6 +79,28 @@ class TestSample(test_time_trace.TestSample):
         based sample function.
         """
         super().test_long_trace()
+
+
+@numba.jitclass([("mult", numba.float64)])
+class FluoModel:
+    def __init__(self, mult):
+        self.mult = mult
+
+    def generate(self, m):
+        return self.mult * m
+
+
+class TestExperiment(test_time_trace.TestExperiment):
+    """Test the `experiment` function"""
+    def setUp(self):
+        super().setUp()
+        self.exp_func = time_trace_numba.experiment
+        self.donor_gen = FluoModel(3)
+        self.acceptor_gen = FluoModel(2)
+
+    def test_call(self):
+        """time_trace_numba.experiment: Basic functionality"""
+        super().test_call()
 
 
 if __name__ == "__main__":

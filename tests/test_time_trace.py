@@ -151,18 +151,17 @@ class TestSample(unittest.TestCase):
 
 class TestExperiment(unittest.TestCase):
     """Test the `experiment` function"""
+    def setUp(self):
+        self.exp_func = time_trace.experiment
+        self.donor_gen = lambda m: 3 * m
+        self.acceptor_gen = lambda m: 2 * m
+
     def test_call(self):
         """time_trace.experiment: Basic functionality"""
         e = np.tile([0.8, 0.2], 10)
         phot = 100
 
-        def donor(m):
-            return 3 * m
-
-        def acceptor(m):
-            return 2 * m
-
-        d, a = time_trace.experiment(e, 100, donor, acceptor)
+        d, a = self.exp_func(e, 100, self.donor_gen, self.acceptor_gen)
 
         np.testing.assert_allclose(d, 3*(1-e)*phot)
         np.testing.assert_allclose(a, 2*e*phot)
