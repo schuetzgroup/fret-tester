@@ -112,7 +112,7 @@ class TwoStateExpTruth:
 
 
 @numba.njit
-def sample(time, eff, exposure_time, data_points=np.inf):
+def sample(time, eff, exposure_time, data_points=np.inf, frame_time=0.):
     """Sample the true smFRET time trace with finite exposure time
 
     This means that there will be integration over all transitions that happen
@@ -131,6 +131,10 @@ def sample(time, eff, exposure_time, data_points=np.inf):
         Number of data points to return. If the FRET time trace is too short,
         the maximum number of data points the trace allows is returned.
         Defaults to infinity.
+    frame_time : float, optional
+        Total time for one frame, i.e. minimum time between two data points.
+        If this is less than `exposure_time`, use `exposure_time`. Defaults
+        to 0, i.e. use `exposure_time`.
 
     Returns
     -------
@@ -140,18 +144,23 @@ def sample(time, eff, exposure_time, data_points=np.inf):
     sample_eff : numpy.ndarray
         Corresponding sampled FRET efficiencies
     """
-    num_dp = int(min(time[-1] / exposure_time, data_points))
+    frame_time = max(exposure_time, frame_time)
+    num_dp = int(min(time[-1] / frame_time, data_points))
 
     ret_t = np.empty(num_dp)
     ret_e = np.empty(num_dp)
 
     t_idx = 0
     for dp in range(0, num_dp):
-        t_end = (dp + 1) * exposure_time
+        t_end = (dp + 1) * frame_time
         ret_t[dp] = t_end
 
         intens = 0.
         t_sub = t_end - exposure_time
+
+        while time[t_idx] < t_sub:
+            t_idx += 1
+
         while time[t_idx] < t_end:
             intens += (time[t_idx] - t_sub) * eff[t_idx]
             t_sub = time[t_idx]
@@ -210,7 +219,7 @@ class DataSet:
         :py:func:`experiment`
     exp_eff : numpy.ndarray, dtype(float64)
         Experiment FRET efficiency, i.e. ``exp_acc / (exp_acc + exp_don)``
-"""
+    """
     def __init__(self, true_time, true_eff, samp_time, samp_eff, exp_don,
                  exp_acc, exp_eff):
         self.true_time = true_time
@@ -224,7 +233,7 @@ class DataSet:
 
 @numba.njit
 def simulate_dataset(truth, exposure_time, data_points, photons,
-                     donor_brightness, acceptor_brightness):
+                     donor_brightness, acceptor_brightness, frame_time=0.):
     """Simulate a whole data set
 
     Consecutively run :py:func:`two_state_truth`, :py:func:`sample`, and
@@ -253,15 +262,20 @@ def simulate_dataset(truth, exposure_time, data_points, photons,
     donor_brightness, acceptor_brightness : callable
         Takes one argument, an array of mean brightness values. For each entry
         `m` it returns a random value drawn from the brightness distribution.
+    frame_time : float, optional
+        Total time for one frame, i.e. minimum time between two data points.
+        If this is less than `exposure_time`, use `exposure_time`. Defaults
+        to 0, i.e. use `exposure_time`.
 
     Returns
     -------
     DataSet
         Collected simulated data
     """
-    dur = data_points * exposure_time
+    frame_time = max(exposure_time, frame_time)
+    dur = data_points * frame_time
     t, e = truth.generate(dur)
 
-    st, se = sample(t, e, exposure_time, data_points)
+    st, se = sample(t, e, exposure_time, data_points, frame_time)
     d, a = experiment(se, photons, donor_brightness, acceptor_brightness)
     return DataSet(t, e, st, se, d, a, a/(d+a))

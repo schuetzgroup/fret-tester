@@ -115,7 +115,7 @@ class TwoStateExpTruth:
         return np.random.rand()
 
 
-def sample(time, eff, exposure_time, data_points=np.inf):
+def sample(time, eff, exposure_time, data_points=np.inf, frame_time=0.):
     """Sample the true smFRET time trace with finite exposure time
 
     This means that there will be integration over all transitions that happen
@@ -134,6 +134,10 @@ def sample(time, eff, exposure_time, data_points=np.inf):
         Number of data points to return. If the FRET time trace is too short,
         the maximum number of data points the trace allows is returned.
         Defaults to infinity.
+    frame_time : float, optional
+        Total time for one frame, i.e. minimum time between two data points.
+        If this is less than `exposure_time`, use `exposure_time`. Defaults
+        to 0, i.e. use `exposure_time`.
 
     Returns
     -------
@@ -148,10 +152,17 @@ def sample(time, eff, exposure_time, data_points=np.inf):
     t0[0] = 0
     t0[1:] = time
 
-    data_points = int(min(time[-1] / exposure_time, data_points))
+    frame_time = max(exposure_time, frame_time)
 
-    sample_t = np.linspace(0, data_points*exposure_time, data_points+1,
-                           endpoint=True)
+    data_points = int(min(time[-1] / frame_time, data_points))
+
+    end_t = np.linspace(frame_time, data_points*frame_time, data_points,
+                        endpoint=True)
+    start_t = end_t - exposure_time
+    sample_t = np.empty(2*len(start_t)+1)
+    sample_t[0] = 0
+    sample_t[1::2] = start_t
+    sample_t[2::2] = end_t
 
     # Integrate the efficiency step function, prepend 0
     lifetimes = np.diff(t0)
@@ -163,11 +174,11 @@ def sample(time, eff, exposure_time, data_points=np.inf):
                                left=np.NaN, right=np.NaN)
     # Now take use diff to get the integrated efficiencies between the
     # sampling time points
-    sample_eff = np.diff(sample_int_eff)
+    sample_eff = np.diff(sample_int_eff)[1::2]
     # Scale correctly
     sample_eff /= exposure_time
 
-    return sample_t[1:], sample_eff
+    return end_t, sample_eff
 
 
 def experiment(eff, photons, donor_brightness, acceptor_brightness):
@@ -222,7 +233,7 @@ exp_eff : array_like
 
 
 def simulate_dataset(truth, exposure_time, data_points, photons,
-                     donor_brightness, acceptor_brightness):
+                     donor_brightness, acceptor_brightness, frame_time=0.):
     """Simulate a whole data set
 
     Consecutively run :py:func:`two_state_truth`, :py:func:`sample`, and
@@ -251,13 +262,19 @@ def simulate_dataset(truth, exposure_time, data_points, photons,
     donor_brightness, acceptor_brightness : callable
         Takes one argument, an array of mean brightness values. For each entry
         `m` it returns a random value drawn from the brightness distribution.
+    frame_time : float, optional
+        Total time for one frame, i.e. minimum time between two data points.
+        If this is less than `exposure_time`, use `exposure_time`. Defaults
+        to 0, i.e. use `exposure_time`.
 
     Returns
     -------
     DataSet
         Collected simulated data
     """
-    dur = data_points * exposure_time
+    frame_time = max(exposure_time, frame_time)
+
+    dur = data_points * frame_time
     if callable(truth):
         t, e = truth(dur)
     elif hasattr(truth, "generate"):
@@ -265,6 +282,7 @@ def simulate_dataset(truth, exposure_time, data_points, photons,
     else:
         t, e = truth
 
-    st, se = sample(t, e, exposure_time, data_points)
+    st, se = sample(t, e, exposure_time, data_points=data_points,
+                    frame_time=frame_time)
     d, a = experiment(se, photons, donor_brightness, acceptor_brightness)
     return DataSet(t, e, st, se, d, a, a/(d+a))

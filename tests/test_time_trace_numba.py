@@ -80,6 +80,19 @@ class TestSample(test_time_trace.TestSample):
         """
         super().test_long_trace()
 
+    def test_frame_time(self):
+        """time_trace_numba.sample: Non-zero frame_time"""
+        super().test_frame_time()
+
+    def test_random_input_frame_time(self):
+        """time_trace_numba.sample: Rand. inp. TwoStateExpTruth (w/ frame_time)
+
+        Compare to the saved result of a test run. The test run was not
+        verified except using the other tests of this class, so this is more
+        a regression test than a functionality test.
+        """
+        super().test_random_input_frame_time()
+
 
 @numba.jitclass([("mult", numba.float64)])
 class FluoModel:

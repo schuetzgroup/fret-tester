@@ -28,9 +28,10 @@ def make_two_state_exp_truth_seed0():
     e[1::2] = 0.8
 
     s = time_trace.sample(t, e, 3, 40)
+    sft = time_trace.sample(t, e, 3, 24, frame_time=5)
 
     np.savez_compressed(os.path.join(path, "two_state_exp_truth_seed0.npz"),
-                        t=t, e=e, s=s)
+                        t=t, e=e, s=s, sft=sft)
 
 
 class TestTwoStateExpTruth(unittest.TestCase):
@@ -138,15 +139,44 @@ class TestSample(unittest.TestCase):
                                    atol=0., rtol=1e-10)
 
     def test_random_input(self):
-        """time_trace.sample: Use output of TwoStateExpTruth as input
+        """time_trace.sample: Random input from TwoStateExpTruth
 
         Compare to the saved result of a test run. The test run was not
         verified except using the other tests of this class, so this is more
         a regression test than a functionality test.
         """
         f = np.load(os.path.join(path, "two_state_exp_truth_seed0.npz"))
-        s = self.sample_func(f["t"], f["e"], 3, 40)
+        s = self.sample_func(f["t"], f["e"], 3)
+        np.testing.assert_equal(len(s[0]), 40)
         np.testing.assert_allclose(s, f["s"])
+
+    def test_frame_time(self):
+        """time_trace.sample: Non-zero frame_time"""
+        # Modified version of test_call
+        t = np.arange(3, 37, 3)
+        eff = [0.8, 0.2]
+        e = np.array(eff*6)
+
+        s = self.sample_func(t, e, 4, frame_time=8)
+
+        f = np.array([0.75, 0.5, 0.25])
+        f = np.column_stack((f, f[::-1]))
+        se_exp = np.sum(f * np.array([eff]), axis=1)
+
+        np.testing.assert_allclose(
+            s, [np.arange(8, 37, 8), (se_exp.tolist()*3)[1::2]])
+
+    def test_random_input_frame_time(self):
+        """time_trace.sample: Rand input from TwoStateExpTruth (w/ frame_time)
+
+        Compare to the saved result of a test run. The test run was not
+        verified except using the other tests of this class, so this is more
+        a regression test than a functionality test.
+        """
+        f = np.load(os.path.join(path, "two_state_exp_truth_seed0.npz"))
+        s = self.sample_func(f["t"], f["e"], 3, frame_time=5)
+        np.testing.assert_equal(len(s[0]), 24)
+        np.testing.assert_allclose(s, f["sft"])
 
 
 class TestExperiment(unittest.TestCase):
@@ -185,15 +215,17 @@ class TestSimulateDataset(unittest.TestCase):
         t_ex = 3
         dp = 10000
         phot = 100
+        t_fr = 5
 
         d = self.dataset_func(self.truth, t_ex, dp, phot,
-                              self.donor_gen, self.acceptor_gen)
+                              self.donor_gen, self.acceptor_gen,
+                              frame_time=t_fr)
 
         np.testing.assert_allclose([d.true_time, d.true_eff],
-                                   self.truth.generate(dp*t_ex))
+                                   self.truth.generate(dp*t_fr))
         np.testing.assert_allclose(
             [d.samp_time, d.samp_eff],
-            self.sample_func(d.true_time, d.true_eff, t_ex))
+            self.sample_func(d.true_time, d.true_eff, t_ex, frame_time=t_fr))
 
         db, ab = self.exp_func(d.samp_eff, phot,
                                self.donor_gen, self.acceptor_gen)
