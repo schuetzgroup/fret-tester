@@ -279,3 +279,23 @@ def simulate_dataset(truth, exposure_time, data_points, photons,
     st, se = sample(t, e, exposure_time, data_points, frame_time)
     d, a = experiment(se, photons, donor_brightness, acceptor_brightness)
     return DataSet(t, e, st, se, d, a, a/(d+a))
+
+
+@numba.njit
+def simulate_dataset2(truth, exposure_time, data_points, photons,
+                      donor_brightness, acceptor_brightness):
+    se_ret = np.empty(data_points)
+    d_ret = np.empty(data_points)
+    a_ret = np.empty(data_points)
+    for i in range(data_points):
+        t, e = truth.generate(exposure_time)
+        st, se = sample(t, e, exposure_time, 1)
+        d, a = experiment(se, photons, donor_brightness, acceptor_brightness)
+
+        se_ret[i] = se[0]
+        d_ret[i] = d[0]
+        a_ret[i] = a[0]
+
+    empty = np.empty(0)
+    return DataSet(empty, empty, empty, se_ret, d_ret, a_ret,
+                   a_ret/(d_ret+a_ret))
