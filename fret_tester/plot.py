@@ -192,8 +192,8 @@ class Plotter2D(_PlotterBase):
                                   linestyle=self.truth_style)
             ax.add_line(l2)
 
-            ax.set_xscale(self.scale)
-            ax.set_yscale(self.scale)
+        ax.set_xscale(self.scale)
+        ax.set_yscale(self.scale)
 
         for a in (ax.xaxis, ax.yaxis):
             a.set_major_formatter(self.tick_formatter)
