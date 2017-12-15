@@ -98,3 +98,12 @@ class LognormalBrightness:
 
     def __call__(self, m):
         return self.generate(m)
+
+
+class PolyLnBrightness(LognormalBrightness):
+    def __init__(self, parms, max_mean=None, precision=0.):
+        self.poly = np.poly1d(parms)
+        super().__init__(max_mean, precision)
+
+    def std_from_mean(self, m):
+        return self.poly(m)
