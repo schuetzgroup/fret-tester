@@ -90,7 +90,8 @@ class Plotter1D(_PlotterBase):
         if self.significance > min(self.pval_range):
             t = mpl.transforms.blended_transform_factory(ax.transAxes,
                                                          ax.transData)
-            r = mpl.patches.Rectangle((0, 0), 1, self.significance,
+            r = mpl.patches.Rectangle((0, min(self.pval_range)), 1,
+                                      self.significance - min(self.pval_range),
                                       transform=t, **self.significance_opts)
             ax.add_patch(r)
 
