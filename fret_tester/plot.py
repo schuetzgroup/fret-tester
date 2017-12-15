@@ -33,7 +33,7 @@ class _PlotterBase:
         self._time_unit = t
         self._time_init_label = " [{}]".format(t) if t else ""
 
-    def _make_axes(self, nrows, n, ax_or_subspec, fig, colorbar="on"):
+    def make_axes(self, nrows, n, ax_or_subspec, fig, colorbar="on"):
         ncols = math.ceil(n / nrows)
 
         if ax_or_subspec is None:
@@ -135,7 +135,7 @@ class Plotter1D(_PlotterBase):
             truths = [None] * n
         empty_cbar = "empty" if empty_cbar else "off"
 
-        ax, _ = self._make_axes(nrows, n, ax_or_subspec, fig, empty_cbar)
+        ax, _ = self.make_axes(nrows, n, ax_or_subspec, fig, empty_cbar)
 
         axt = []
         for a, tt, p, tr in zip(ax, test_times, p_vals, truths):
@@ -215,7 +215,7 @@ class Plotter2D(_PlotterBase):
         if fig is None:
             fig = plt.gcf()
 
-        ax, colorbar_ax = self._make_axes(nrows, n, ax_or_subspec, fig, "on")
+        ax, colorbar_ax = self.make_axes(nrows, n, ax_or_subspec, fig, "on")
 
         for a, tt, p, tr in zip(ax, test_times, p_vals, truths):
             m = self.plot(tt, p, tr, a)
