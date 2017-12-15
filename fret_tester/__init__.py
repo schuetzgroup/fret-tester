@@ -4,3 +4,4 @@ from .time_trace import (TwoStateExpTruth, sample, experiment,
                          DataSet, simulate_dataset)
 from .ks_test import (BatchTester, numpy_tester, batch_test,
                       combine_test_results)
+from .utils import bi_beta_fit
