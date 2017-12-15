@@ -28,10 +28,10 @@ class LognormalBrightness:
                 precision > 0.):
             # Pre-compute lognormal distribution parameters to save time later
             # (calculating log is expensive)
-            p = self._parameters(np.arange(0, max_mean+precision, precision))
+            p = self.parameters(np.arange(0, max_mean+precision, precision))
             self._cached_params = np.array(p).T
 
-    def _parameters(self, m):
+    def parameters(self, m):
         """Calculate lognormal parameters from desired mean
 
         Compute :math:`\mu` and :math:`\sigma` of the Gaussian distribution
@@ -86,7 +86,7 @@ class LognormalBrightness:
             Random brightness values
         """
         if self._cached_params is None:
-            mu, sigma = self._parameters(m)
+            mu, sigma = self.parameters(m)
         else:
             idx = np.round(m / self._cached_precision).astype(int)
             mu, sigma = self._cached_params[idx].T
