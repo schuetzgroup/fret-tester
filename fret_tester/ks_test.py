@@ -10,6 +10,17 @@ from . import time_trace
 
 class BatchTester:
     def __init__(self, truth_generator, sim_func):
+        """Parameters
+        ----------
+        truth_generator : type
+            Class to be initialized with lifetimes and FRET efficiencies.
+            Instances should be callable with one parameter, the minimum
+            time trace length and return a ground truth time trace.
+            :py:class:`TwoStateExpTruth` would be an example.
+        sim_func : callable
+            Function to simulate a dataset. See :py:func:`simulate_dataset`
+            for an example and the call signature.
+        """
         self.truth_generator = truth_generator
         self.sim_func = sim_func
 
@@ -190,7 +201,7 @@ def batch_test(*args, **kwargs):
 
 
 def combine_test_results(results):
-    """Given multiple test results, calculate p-values for global consistency
+    r"""Given multiple test results, calculate p-values for global consistency
 
     Multiple tests at e.g. different exposure times will lead to multiple
     areas of consistency. Since lifetimes should not depend on exposure times,

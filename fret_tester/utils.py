@@ -8,7 +8,7 @@ def _bi_beta_model(x, f, a1, b1, a2, b2):
     """Mixture of two Beta PDFs
 
     Returns f * beta.pdf(x, a1, b1) + (1 - f) * beta.pdf(x, a2, b2), where
-    `beta.pdf` is from :py:module:`scipy.stats`.
+    `beta.pdf` is from :py:mod:`scipy.stats`.
 
     Parameters
     ----------
@@ -36,7 +36,7 @@ def bi_beta_fit(eff, bins=100):
     """Fit mixture of two Beta distribution PDFs to histogram
 
     Fits f * beta.pdf(x, a1, b1) + (1 - f) * beta.pdf(x, a2, b2) (where
-    `beta.pdf` is from :py:module:`scipy.stats`) to the histogram of `f`
+    `beta.pdf` is from :py:mod:`scipy.stats`) to the histogram of `f`
     using least squares fitting.
 
     Parameters
