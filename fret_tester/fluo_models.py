@@ -5,7 +5,12 @@ import numpy as np
 
 
 class LognormalBrightness:
-    """Fluorophore brightness modeled by a lognormal distribution"""
+    """Fluorophore brightness modeled by a lognormal distribution
+
+    This is intended as a base class. One needs to implement the
+    :py:meth:`std_from_mean` in a subclass which gives the lognormal
+    distribution standard deviation for a certain mean.
+    """
     def __init__(self, max_mean=None, precision=0.):
         """Parameters
         ----------
@@ -97,13 +102,63 @@ class LognormalBrightness:
             return np.random.lognormal(mu, sigma)
 
     def __call__(self, m):
+        """Synonymous for :py:meth:`generate`"""
         return self.generate(m)
+
+    def std_from_mean(self, m):
+        """Get standard deviation for given mean
+
+        This needs to be implemented in a subclass.
+
+        Parameters
+        ----------
+        m : array-like
+            Mean values to calculate standard deviations for.
+
+        Returns
+        -------
+        numpy.ndarray
+            Standard deviations corresponding to means.
+        """
+        raise NotImplementedError("`std_from_mean` needs to be implemented.")
 
 
 class PolyLnBrightness(LognormalBrightness):
+    """LognormalBrightness subclass with polynomial mean-vs.-std relation
+
+    This is a subclass of :py:class:`LognormalBrightness` where the relation
+    between mean and standard deviation is described by a polynomial.
+    """
     def __init__(self, parms, max_mean=None, precision=0.):
+        """Parameters
+        ----------
+        parms : list of float
+            Polynomial coefficients in decreasing order
+        max_mean : float or None
+            If given (and `precision` > 0), precalculate parameters of the
+            lognormal distributions (corresponding to means and matchings stds)
+            from 0 to `max_mean` in steps of `precision` for a performance
+            gain (at cost of accuracy). Defaults to None, i.e. no
+            pre-computation.
+        precision : float or None
+            Precision of pre-computed lognormal parameters. The smaller, the
+            more accurate, as long as it is > 0. Defaults to 0, i.e. no
+            pre-computation.
+        """
         self.poly = np.poly1d(parms)
         super().__init__(max_mean, precision)
 
     def std_from_mean(self, m):
+        """Get std. deviation for given mean according to polynomial relation
+
+        Parameters
+        ----------
+        m : array-like
+            Mean values to calculate standard deviations for.
+
+        Returns
+        -------
+        numpy.ndarray
+            Standard deviations corresponding to means.
+        """
         return self.poly(m)

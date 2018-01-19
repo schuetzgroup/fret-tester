@@ -1,3 +1,4 @@
+# Copyright 2017 Lukas Schrangl
 """Some utility functions"""
 import numpy as np
 import scipy.stats

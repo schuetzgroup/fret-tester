@@ -26,7 +26,7 @@ class BatchTester:
         Parameters
         ----------
         test_times : array_like
-            Life times to test experiment data against. Run simulations for
+            Lifetimes to test experiment data against. Run simulations for
             each set of test lifes. ``test_times[i]`` has to be an array of
             test times for the i-th state.
         efficiencies : array_like
@@ -107,8 +107,20 @@ class BatchTester:
         # transpose
         return np.reshape(ret, shape).T
 
-    def frame_time(self, life_times):
-        return 2 * max(life_times)
+    def frame_time(self, lifetimes):
+        """Calculate a frame time from lifetimes to avoid autocorrelation
+
+        Parameters
+        ----------
+        lifetimes : list of float
+            State lifetimes
+
+        Returns
+        -------
+        float
+            A frame time that avoids autocorrelation
+        """
+        return 2 * max(lifetimes)
 
     def _batch_test_worker(self, test_times, efficiencies, exposure_time,
                            data_points, photons, experiment_data,
@@ -121,7 +133,7 @@ class BatchTester:
 
         Parameters
         ----------
-        test_times : array_like, shape(n, 2)
+        test_times : array-like, shape(n, 2)
             Life times to test experiment data against. Run simulations for
             each set of test lifes. ``test_times[i]`` a set of test life times
             (one per state). This is different (transposed) from the
@@ -163,9 +175,43 @@ numpy_tester = BatchTester(time_trace.TwoStateExpTruth,
 
 
 def batch_test(*args, **kwargs):
+    """Call `batch_test` with `TwoStateExpTruth` and `simulate_dataset`
+
+    This calls the :py:meth:`BatchTester.batch_test` method for a
+    :py:class:`BatchTester` instance which uses
+    :py:class:`time_trace.TwoStateExpTruth` for state change trajectory
+    simulation and :py:func:`time_trace.simulate_dataset` for FRET
+    simulation.
+
+    For details about parameters, return values, etc. see
+    :py:meth:`BatchTester.batch_test`.
+    """
     return numpy_tester.batch_test(*args, **kwargs)
 
 
 def combine_test_results(results):
+    """Given multiple test results, calculate p-values for global consistency
+
+    Multiple tests at e.g. different exposure times will lead to multiple
+    areas of consistency. Since lifetimes should not depend on exposure times,
+    one would only consider those lifetime combinations consistent which yield
+    high p-values for all exposure times. This is done by calculating
+
+    .. math::
+        \hat{p}(\tau_1, \tau_2) = 1 - (1 -
+        p_\text{min}(\tau_1, \tau_2))^{|T_\text{ex}|},
+
+    where :math:`T_\text{ex}` is the set of test results.
+
+    Parameters
+    ----------
+    results : list of array-like, shape(m, n)
+        Test results
+
+    Returns
+    -------
+    numpy.ndarray, shape(m, n)
+        Array of :math:`\hat{p}` values
+    """
     n = len(results)
     return 1 - (1 - np.min(results, axis=0))**n
