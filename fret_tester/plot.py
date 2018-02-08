@@ -35,7 +35,7 @@ class _PlotterBase:
         for k, v in kwargs.items():
             setattr(self, k, v)
 
-        if not hasattr(self, "tick_formatter"):
+        if self.tick_formatter is None:
             if self.scale == "log":
                 self.tick_formatter = mpl.ticker.LogFormatter()
             else:
