@@ -1,0 +1,525 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fret_tester.time_trace &mdash; fret-tester 1.0.dev documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="fret-tester 1.0.dev documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> fret-tester
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.dev
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../time_trace.html">Simulation of time traces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fluo_models.html">Simulation of fluorophore brightness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ks_test.html">Statistical testing of experimental data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../plot.html">Plotting of results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utils.html">Utility functions</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">fret-tester</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>fret_tester.time_trace</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for fret_tester.time_trace</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright 2017 Lukas Schrangl</span>
+<span class="sd">&quot;&quot;&quot;Tools for simulating smFRET time traces&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="TwoStateExpTruth"><a class="viewcode-back" href="../../time_trace.html#fret_tester.TwoStateExpTruth">[docs]</a><span class="k">class</span> <span class="nc">TwoStateExpTruth</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Simulate ground truth smFRET time traces (two states, exp. lifetimes)</span>
+
+<span class="sd">    Lifetimes are exponentially distributed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lifetimes</span><span class="p">,</span> <span class="n">efficiencies</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        life_times : array_like, shape=(2,)</span>
+<span class="sd">            Mean (of the exponentially distributed) life times of the states</span>
+<span class="sd">        efficiencies : array_like, shape=(2,)</span>
+<span class="sd">            FRET efficiencies for the states</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lifetimes</span> <span class="o">=</span> <span class="n">lifetimes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">efficiencies</span> <span class="o">=</span> <span class="n">efficiencies</span>
+
+        <span class="c1"># If 1 or 2, disable random number generation and yield predictable</span>
+        <span class="c1"># results. See _rand_uniform and _rand_exp methods</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_test</span> <span class="o">=</span> <span class="mi">0</span>
+
+<div class="viewcode-block" id="TwoStateExpTruth.generate"><a class="viewcode-back" href="../../time_trace.html#fret_tester.TwoStateExpTruth.generate">[docs]</a>    <span class="k">def</span> <span class="nf">generate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">duration</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a time trace that of at least `duration` length</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        duration : float</span>
+<span class="sd">            Minimum duration of the time trace. In practice, it will be</span>
+<span class="sd">            longer.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        time : numpy.ndarray</span>
+<span class="sd">            Time points of state changes. These are bi-exponentially</span>
+<span class="sd">            distributed.</span>
+<span class="sd">        eff : numpy.ndarray</span>
+<span class="sd">            Corresponding FRET efficiencies. The `i`-th entry lasts from</span>
+<span class="sd">            ``time[i-1]`` (or 0 for i=0) to ``time[i]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">num_states</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lifetimes</span><span class="p">)</span>
+        <span class="c1"># num_events increased by 50% to be (quite) sure that we generate</span>
+        <span class="c1"># a long enough trace in one run in the `while` loop below</span>
+        <span class="n">num_events</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">duration</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lifetimes</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1.5</span><span class="p">)</span> <span class="o">//</span>
+                      <span class="n">num_states</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">1</span>  <span class="c1"># minimum is one event</span>
+
+        <span class="c1"># prob. to start in state 1</span>
+        <span class="n">prob_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lifetimes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lifetimes</span><span class="p">)</span>
+        <span class="c1"># whether to start in state 1</span>
+        <span class="n">start_with_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rand_uniform</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">prob_1</span>
+
+        <span class="k">if</span> <span class="n">start_with_1</span><span class="p">:</span>
+            <span class="c1"># If we start with state 1, the order is already correct</span>
+            <span class="n">lt_sorted</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lifetimes</span>
+            <span class="n">eff_sorted</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">efficiencies</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># If we start with state 2, the order needs to be reversed</span>
+            <span class="n">lt_sorted</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lifetimes</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">eff_sorted</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">efficiencies</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">time</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">eff</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">dur</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># Run in a loop for the very unlikely case where not enough transitions</span>
+        <span class="c1"># were generated (i.e. all randomly generated life times were very</span>
+        <span class="c1"># short)</span>
+        <span class="k">while</span> <span class="n">dur</span> <span class="o">&lt;</span> <span class="n">duration</span><span class="p">:</span>
+            <span class="c1"># Generate transition times by generating exponentially distributed</span>
+            <span class="c1"># random numbers</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rand_exp</span><span class="p">(</span><span class="n">lt_sorted</span><span class="p">,</span> <span class="p">(</span><span class="n">num_events</span><span class="p">,</span> <span class="n">num_states</span><span class="p">))</span>
+            <span class="c1"># FRET efficiencies are constant, just broadcast the array</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">eff_sorted</span><span class="p">,</span> <span class="p">(</span><span class="n">num_events</span><span class="p">,</span> <span class="n">num_states</span><span class="p">))</span>
+
+            <span class="c1"># Generate time series by merging the transition times</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+            <span class="k">if</span> <span class="n">time</span><span class="p">:</span>
+                <span class="n">t</span> <span class="o">+=</span> <span class="n">time</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+            <span class="n">dur</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="c1"># Generate FRET efficiency sequence by merging</span>
+            <span class="n">eff</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+
+        <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+        <span class="n">eff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">eff</span><span class="p">)</span>
+
+        <span class="c1"># Make result as short as possible while still being longer than</span>
+        <span class="c1"># `duration`</span>
+        <span class="n">long_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">time</span> <span class="o">&gt;</span> <span class="n">duration</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">time</span><span class="p">[:</span><span class="n">long_idx</span><span class="p">],</span> <span class="n">eff</span><span class="p">[:</span><span class="n">long_idx</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="TwoStateExpTruth.__call__"><a class="viewcode-back" href="../../time_trace.html#fret_tester.TwoStateExpTruth.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Synonym for :py:func:`generate`&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_rand_exp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_test</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_test</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_test</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span> <span class="o">/</span> <span class="mi">10</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_rand_uniform</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_test</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_test</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_test</span> <span class="o">==</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="sample"><a class="viewcode-back" href="../../time_trace.html#fret_tester.sample">[docs]</a><span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">eff</span><span class="p">,</span> <span class="n">exposure_time</span><span class="p">,</span> <span class="n">data_points</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">frame_time</span><span class="o">=</span><span class="mf">0.</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sample the true smFRET time trace with finite exposure time</span>
+
+<span class="sd">    This means that there will be integration over all transitions that happen</span>
+<span class="sd">    during a single exposure.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    time : array_like, shape=(n,)</span>
+<span class="sd">        Sequence of transition times as returned by :py:func:`two_state_truth`</span>
+<span class="sd">    eff : array_like, shape=(n,)</span>
+<span class="sd">        Sequence of FRET efficiencies as returned by :py:func:`two_state_truth`</span>
+<span class="sd">    exposure_time : float</span>
+<span class="sd">        Exposure time for sampling. All transition during a exposure will be</span>
+<span class="sd">        integrated.</span>
+<span class="sd">    data_points : scalar, optional</span>
+<span class="sd">        Number of data points to return. If the FRET time trace is too short,</span>
+<span class="sd">        the maximum number of data points the trace allows is returned.</span>
+<span class="sd">        Defaults to infinity.</span>
+<span class="sd">    frame_time : float, optional</span>
+<span class="sd">        Total time for one frame, i.e. minimum time between two data points.</span>
+<span class="sd">        If this is less than `exposure_time`, use `exposure_time`. Defaults</span>
+<span class="sd">        to 0, i.e. use `exposure_time`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sample_time : numpy.ndarray</span>
+<span class="sd">        Time points of sampling. They are evenly spaced with `exposure_time`</span>
+<span class="sd">        difference.</span>
+<span class="sd">    sample_eff : numpy.ndarray</span>
+<span class="sd">        Corresponding sampled FRET efficiencies</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Prepend 0 to `time`</span>
+    <span class="n">t0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">time</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">t0</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">t0</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">time</span>
+
+    <span class="n">frame_time</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">exposure_time</span><span class="p">,</span> <span class="n">frame_time</span><span class="p">)</span>
+
+    <span class="n">data_points</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">time</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">frame_time</span><span class="p">,</span> <span class="n">data_points</span><span class="p">))</span>
+
+    <span class="n">end_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">frame_time</span><span class="p">,</span> <span class="n">data_points</span><span class="o">*</span><span class="n">frame_time</span><span class="p">,</span> <span class="n">data_points</span><span class="p">,</span>
+                        <span class="n">endpoint</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">start_t</span> <span class="o">=</span> <span class="n">end_t</span> <span class="o">-</span> <span class="n">exposure_time</span>
+    <span class="n">sample_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">start_t</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">sample_t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">sample_t</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">start_t</span>
+    <span class="n">sample_t</span><span class="p">[</span><span class="mi">2</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">end_t</span>
+
+    <span class="c1"># Integrate the efficiency step function, prepend 0</span>
+    <span class="n">lifetimes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">t0</span><span class="p">)</span>
+    <span class="n">int_eff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">t0</span><span class="p">))</span>
+    <span class="n">int_eff</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">lifetimes</span><span class="p">,</span> <span class="n">eff</span><span class="p">),</span> <span class="n">out</span><span class="o">=</span><span class="n">int_eff</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+    <span class="c1"># Get integrated function at points of interest (i.e. sampling time points)</span>
+    <span class="n">sample_int_eff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">sample_t</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">int_eff</span><span class="p">,</span>
+                               <span class="n">left</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">NaN</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">NaN</span><span class="p">)</span>
+    <span class="c1"># Now take use diff to get the integrated efficiencies between the</span>
+    <span class="c1"># sampling time points</span>
+    <span class="n">sample_eff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">sample_int_eff</span><span class="p">)[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span>
+    <span class="c1"># Scale correctly</span>
+    <span class="n">sample_eff</span> <span class="o">/=</span> <span class="n">exposure_time</span>
+
+    <span class="k">return</span> <span class="n">end_t</span><span class="p">,</span> <span class="n">sample_eff</span></div>
+
+
+<div class="viewcode-block" id="experiment"><a class="viewcode-back" href="../../time_trace.html#fret_tester.experiment">[docs]</a><span class="k">def</span> <span class="nf">experiment</span><span class="p">(</span><span class="n">eff</span><span class="p">,</span> <span class="n">photons</span><span class="p">,</span> <span class="n">donor_brightness</span><span class="p">,</span> <span class="n">acceptor_brightness</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;From sampled smFRET time traces, simulate (noisy) experiment results</span>
+
+<span class="sd">    This adds noise coming from the rather broad brightness distributions of</span>
+<span class="sd">    fluorophores to the time traces, resulting in a trace as one would get</span>
+<span class="sd">    out of an experiment.</span>
+
+<span class="sd">    The acceptor signal is generated by</span>
+<span class="sd">    ``acceptor_brightness(eff * photons)``, the donor signal is generated</span>
+<span class="sd">    by ``donor_brightness((1 - eff) * photons)``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    eff : array_like</span>
+<span class="sd">        Sampled FRET efficiencies</span>
+<span class="sd">    photons : float</span>
+<span class="sd">        Mean summed number of photons emitted by donor and acceptor per</span>
+<span class="sd">        exposure.</span>
+<span class="sd">    donor_brightness, acceptor_brightness : callable</span>
+<span class="sd">        Takes one argument, an array of mean brightness values. For each entry</span>
+<span class="sd">        `m` it returns a random value drawn from the brightness distribution</span>
+<span class="sd">        with mean `m`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    donor_noisy, acceptor_noisy : numpy.ndarray</span>
+<span class="sd">        Donor and acceptor fluorescence including noise</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">acc_p</span> <span class="o">=</span> <span class="n">eff</span> <span class="o">*</span> <span class="n">photons</span>
+    <span class="n">don_p</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">eff</span><span class="p">)</span> <span class="o">*</span> <span class="n">photons</span>
+    <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">acceptor_brightness</span><span class="p">):</span>
+        <span class="n">acc_p_noisy</span> <span class="o">=</span> <span class="n">acceptor_brightness</span><span class="p">(</span><span class="n">acc_p</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">acc_p_noisy</span> <span class="o">=</span> <span class="n">acceptor_brightness</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">acc_p</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">donor_brightness</span><span class="p">):</span>
+        <span class="n">don_p_noisy</span> <span class="o">=</span> <span class="n">donor_brightness</span><span class="p">(</span><span class="n">don_p</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">don_p_noisy</span> <span class="o">=</span> <span class="n">donor_brightness</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">don_p</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">don_p_noisy</span><span class="p">,</span> <span class="n">acc_p_noisy</span></div>
+
+
+<span class="n">DataSet</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;DataSet&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;true_time&quot;</span><span class="p">,</span> <span class="s2">&quot;true_eff&quot;</span><span class="p">,</span>
+                                 <span class="s2">&quot;samp_time&quot;</span><span class="p">,</span> <span class="s2">&quot;samp_eff&quot;</span><span class="p">,</span>
+                                 <span class="s2">&quot;exp_don&quot;</span><span class="p">,</span> <span class="s2">&quot;exp_acc&quot;</span><span class="p">,</span> <span class="s2">&quot;exp_eff&quot;</span><span class="p">])</span>
+<span class="n">DataSet</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;Named tuple containing a full data set of a simulation run</span>
+
+<span class="s2">Attributes</span>
+<span class="s2">----------</span>
+<span class="s2">true_time, true_eff : array_like</span>
+<span class="s2">    True state trajectory as produced by :py:func:`two_state_truth`</span>
+<span class="s2">samp_time, samp_eff : array_like</span>
+<span class="s2">    Sampled state trajectory as produced by :py:func:`sample`</span>
+<span class="s2">exp_don, exp_acc : array_like</span>
+<span class="s2">    (Noisy) donor and acceptor intensities as produced by</span>
+<span class="s2">    :py:func:`experiment`</span>
+<span class="s2">exp_eff : array_like</span>
+<span class="s2">    Experiment FRET efficiency, i.e. ``exp_acc / (exp_acc + exp_don)``</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="simulate_dataset"><a class="viewcode-back" href="../../time_trace.html#fret_tester.simulate_dataset">[docs]</a><span class="k">def</span> <span class="nf">simulate_dataset</span><span class="p">(</span><span class="n">truth</span><span class="p">,</span> <span class="n">exposure_time</span><span class="p">,</span> <span class="n">data_points</span><span class="p">,</span> <span class="n">photons</span><span class="p">,</span>
+                     <span class="n">donor_brightness</span><span class="p">,</span> <span class="n">acceptor_brightness</span><span class="p">,</span> <span class="n">frame_time</span><span class="o">=</span><span class="mf">0.</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Simulate a whole data set</span>
+
+<span class="sd">    Consecutively run :py:func:`two_state_truth`, :py:func:`sample`, and</span>
+<span class="sd">    :py:func:`experiment`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    truth : callable or tuple of numpy.ndarray, shape=(n,)</span>
+<span class="sd">        Ground truth smFRET time trace. If this is an array, ``truth[0]``</span>
+<span class="sd">        should be the sequence of time points where state transitions</span>
+<span class="sd">        occur and ``truth[1]`` the FRET efficiency between the (i-1)-th</span>
+<span class="sd">        time point (or 0 for i = 0) and the i-th time point.</span>
+<span class="sd">        If this is callable, it should return a ground truth smFRET time</span>
+<span class="sd">        trace as described above. It should take one float parameter, which is</span>
+<span class="sd">        the minimum duration of the generated trace.</span>
+<span class="sd">    exposure_time : float</span>
+<span class="sd">        Exposure time for sampling. All transition during a exposure will be</span>
+<span class="sd">        integrated.</span>
+<span class="sd">    data_points : scalar, optional</span>
+<span class="sd">        Number of data points to return. If the FRET time trace is too short,</span>
+<span class="sd">        the maximum number of data points the trace allows is returned.</span>
+<span class="sd">        Defaults to infinity.</span>
+<span class="sd">    photons : float</span>
+<span class="sd">        Mean summed number of photons emitted by donor and acceptor per</span>
+<span class="sd">        exposure.</span>
+<span class="sd">    donor_brightness, acceptor_brightness : callable</span>
+<span class="sd">        Takes one argument, an array of mean brightness values. For each entry</span>
+<span class="sd">        `m` it returns a random value drawn from the brightness distribution.</span>
+<span class="sd">    frame_time : float, optional</span>
+<span class="sd">        Total time for one frame, i.e. minimum time between two data points.</span>
+<span class="sd">        If this is less than `exposure_time`, use `exposure_time`. Defaults</span>
+<span class="sd">        to 0, i.e. use `exposure_time`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    DataSet</span>
+<span class="sd">        Collected simulated data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">frame_time</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">exposure_time</span><span class="p">,</span> <span class="n">frame_time</span><span class="p">)</span>
+
+    <span class="n">dur</span> <span class="o">=</span> <span class="n">data_points</span> <span class="o">*</span> <span class="n">frame_time</span>
+    <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">truth</span><span class="p">):</span>
+        <span class="n">t</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="n">truth</span><span class="p">(</span><span class="n">dur</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">truth</span><span class="p">,</span> <span class="s2">&quot;generate&quot;</span><span class="p">):</span>
+        <span class="n">t</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="n">truth</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">dur</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">t</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="n">truth</span>
+
+    <span class="n">st</span><span class="p">,</span> <span class="n">se</span> <span class="o">=</span> <span class="n">sample</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">exposure_time</span><span class="p">,</span> <span class="n">data_points</span><span class="o">=</span><span class="n">data_points</span><span class="p">,</span>
+                    <span class="n">frame_time</span><span class="o">=</span><span class="n">frame_time</span><span class="p">)</span>
+    <span class="n">d</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">experiment</span><span class="p">(</span><span class="n">se</span><span class="p">,</span> <span class="n">photons</span><span class="p">,</span> <span class="n">donor_brightness</span><span class="p">,</span> <span class="n">acceptor_brightness</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">DataSet</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">se</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">a</span><span class="o">/</span><span class="p">(</span><span class="n">d</span><span class="o">+</span><span class="n">a</span><span class="p">))</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Lukas Schrangl.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.dev',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,541 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Plotting of results &mdash; fret-tester 1.0.dev documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="fret-tester 1.0.dev documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> fret-tester
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.dev
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="time_trace.html">Simulation of time traces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fluo_models.html">Simulation of fluorophore brightness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ks_test.html">Statistical testing of experimental data</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">fret-tester</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Plotting of results</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/plot.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <span class="target" id="module-fret_tester"></span><div class="section" id="plotting-of-results">
+<h1>Plotting of results<a class="headerlink" href="#plotting-of-results" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="fret_tester.Plotter2D">
+<em class="property">class </em><code class="descclassname">fret_tester.</code><code class="descname">Plotter2D</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fret_tester/plot.html#Plotter2D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fret_tester.Plotter2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for producing 2D plots</p>
+<p>These are typically plots of where the two lifetimes were tested
+independently, producing a 2D plot with the p-values color-coded.</p>
+<dl class="method">
+<dt id="fret_tester.Plotter2D.make_axes">
+<code class="descname">make_axes</code><span class="sig-paren">(</span><em>nrows</em>, <em>n</em>, <em>ax_or_subspec</em>, <em>fig</em>, <em>colorbar='on'</em><span class="sig-paren">)</span><a class="headerlink" href="#fret_tester.Plotter2D.make_axes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create matplotlib Axes objects for plotting</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>nrows</strong> (<em>int</em>) – Number of rows. Only has an effect if <cite>ax_or_subspec</cite> is a
+<code class="xref py py-class docutils literal"><span class="pre">SubplotSpec</span></code> instance.</li>
+<li><strong>n</strong> (<em>int</em>) – Number plotss. Only has an effect if <cite>ax_or_subspec</cite> is a
+<code class="xref py py-class docutils literal"><span class="pre">SubplotSpec</span></code> instance.</li>
+<li><strong>ax_or_subspec</strong> (<em>list of matplotlib Axes or matplotlib SupblotSpec or None</em>) – If this is a <code class="xref py py-class docutils literal"><span class="pre">SubplotSpec</span></code> instance, create new Axes on
+a grid in <cite>ax_or_subspec</cite>. If this is a list of Axes, just use
+those. If <cite>None</cite>, create a <code class="xref py py-class docutils literal"><span class="pre">SubplotSpec</span></code> that fills the
+whole figure.</li>
+<li><strong>fig</strong> (<em>matplotlib.figure.Figure</em>) – Figure to create the Axes on. Only applicable if <cite>ax_or_subspec</cite>
+is a <code class="xref py py-class docutils literal"><span class="pre">SubplotSpec</span></code> instance.</li>
+<li><strong>colorbar</strong> (<em>{“on”, “empty”, “off”}, optional</em>) – If “on” or “empty”, create addtional Axes (of <code class="xref py py-attr docutils literal"><span class="pre">cbar_width</span></code>
+width) intended for a colorbar (if <cite>ax_or_subspec</cite> is a
+<code class="xref py py-class docutils literal"><span class="pre">SubplotSpec</span></code> instance) or use the last element of
+<cite>ax_or_subspec</cite> as colorbar Axes (if it is a list of Axes).
+Defaults to “on”.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>ax</strong> (<em>list of matplotlib.axes.Axes</em>) – Axes for plots</li>
+<li><strong>cbar_ax</strong> (<em>matplotlib.axes.Axes or None</em>) – Axes for colorbar (if <cite>colorbar</cite> is “on” or “empty”) or None
+(if <cite>colorbar</cite> is “off”).</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fret_tester.Plotter2D.time_unit">
+<code class="descname">time_unit</code><a class="headerlink" href="#fret_tester.Plotter2D.time_unit" title="Permalink to this definition">¶</a></dt>
+<dd><p>String describing the time unit</p>
+<p>This is used in axis labels.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fret_tester.Plotter2D.norm">
+<code class="descname">norm</code><em class="property"> = &lt;matplotlib.colors.LogNorm object&gt;</em><a class="headerlink" href="#fret_tester.Plotter2D.norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>p-value color map normalization. Logarithmic by default.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fret_tester.Plotter2D.pval_range">
+<code class="descname">pval_range</code><em class="property"> = (0.01, 1.0)</em><a class="headerlink" href="#fret_tester.Plotter2D.pval_range" title="Permalink to this definition">¶</a></dt>
+<dd><p>p-value range</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fret_tester.Plotter2D.cmap">
+<code class="descname">cmap</code><em class="property"> = 'binary'</em><a class="headerlink" href="#fret_tester.Plotter2D.cmap" title="Permalink to this definition">¶</a></dt>
+<dd><p>p-value color map</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fret_tester.Plotter2D.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>test_times</em>, <em>p_vals</em>, <em>truth=None</em>, <em>ax=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fret_tester/plot.html#Plotter2D.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fret_tester.Plotter2D.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw a single 2D plot</p>
+<p>These is typically for plots of where the two lifetimes were tested
+independently, producing a 2D plot with the p-values color-coded.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>test_times</strong> (<em>list of lists of float</em>) – test_times[0] specifies the times the first lifetime :math:`        au_1`
+was tested against. test_times[1] specify the times the second
+lifetime :math:`    au_2` was tested against.</li>
+<li><strong>p_vals</strong> (<em>array_like, dtype(float), shape(len(test_times[0], len(test_times[1]))</em>) – p-values corresponding to <cite>test_times</cite></li>
+<li><strong>truth</strong> (<em>tuple of float or None, optional</em>) – If not <cite>None</cite>, draw lines at these time coordinates to
+mark the true lifetime combination (if known). Defaults to <cite>None</cite>.</li>
+<li><strong>ax</strong> (<em>matplotlib.axes.Axes or None:</em>) – Axes to draw on. Use <code class="docutils literal"><span class="pre">matplotlib.pyplot.gca()</span></code> if <cite>None</cite>.
+Defaults to <cite>None</cite>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>ax</strong> (<em>matplotlib.axes.Axes</em>) – Axes for test_times[1]</li>
+<li><strong>axt</strong> (<em>matplotlib.axes.Axes</em>) – Axes for test_times[0]</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="fret_tester.Plotter2D.plot_series">
+<code class="descname">plot_series</code><span class="sig-paren">(</span><em>test_times</em>, <em>p_vals</em>, <em>truths=None</em>, <em>ax_or_subspec=None</em>, <em>fig=None</em>, <em>nrows=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fret_tester/plot.html#Plotter2D.plot_series"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fret_tester.Plotter2D.plot_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw a series of 2D plots</p>
+<p>Use <a class="reference internal" href="#fret_tester.Plotter2D.plot" title="fret_tester.Plotter2D.plot"><code class="xref py py-meth docutils literal"><span class="pre">plot()</span></code></a> to draw a series of plots on a grid.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>test_times</strong> (<em>list</em>) – Each entry will be passed to <a class="reference internal" href="#fret_tester.Plotter2D.plot" title="fret_tester.Plotter2D.plot"><code class="xref py py-meth docutils literal"><span class="pre">plot()</span></code></a> as <cite>test_times</cite>
+parameter.</li>
+<li><strong>p_vals</strong> (<em>list</em>) – Each entry will be passed to <a class="reference internal" href="#fret_tester.Plotter2D.plot" title="fret_tester.Plotter2D.plot"><code class="xref py py-meth docutils literal"><span class="pre">plot()</span></code></a> as <cite>p_vals</cite> parameter.</li>
+<li><strong>truths</strong> (<em>list or None, optional</em>) – Each entry will be passed to <a class="reference internal" href="#fret_tester.Plotter2D.plot" title="fret_tester.Plotter2D.plot"><code class="xref py py-meth docutils literal"><span class="pre">plot()</span></code></a> as <cite>truth</cite> parameter.
+Defaults to None.</li>
+<li><strong>ax_or_subspec</strong> (<em>list of matplotlib Axes or matplotlib SupblotSpec or None</em>) – If this is a <code class="xref py py-class docutils literal"><span class="pre">SubplotSpec</span></code> instance, create new Axes on
+a grid in <cite>ax_or_subspec</cite>. If this is a list of Axes, just use
+those. If <cite>None</cite>, create a <code class="xref py py-class docutils literal"><span class="pre">SubplotSpec</span></code> that fills the
+whole figure.</li>
+<li><strong>fig</strong> (<em>matplotlib.figure.Figure or None</em>) – Only effective if  <cite>ax_or_subspec</cite> is a <code class="xref py py-class docutils literal"><span class="pre">SubplotSpec</span></code>
+instance. If <cite>None</cite>, use <code class="docutils literal"><span class="pre">matplotlib.pyplot.gcf()</span></code>. Defaults to
+<cite>None</cite>.</li>
+<li><strong>nrows</strong> (<em>int, optional</em>) – Number of rows. Defaults to 1.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><ul class="simple">
+<li><strong>ax</strong> (<em>list of matplotlib.axes.Axes</em>) – Axes for p-value plots.</li>
+<li><strong>colorbar_ax</strong> (<em>matplotlib.axes.Axes</em>) – Axes for colorbar.</li>
+<li><strong>fig</strong> (<em>matplotlib.figure.Figure or None</em>) – Only effective if  <cite>ax_or_subspec</cite> is a <code class="xref py py-class docutils literal"><span class="pre">SubplotSpec</span></code>
+instance. If <cite>None</cite>, use <code class="docutils literal"><span class="pre">matplotlib.pyplot.gcf()</span></code>. Defaults to
+<cite>None</cite>.</li>
+<li><strong>nrows</strong> (<em>int, optional</em>) – Number of rows. Defaults to 1.</li>
+</ul>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>ax</strong> (<em>list of matplotlib.axes.Axes</em>) – Axes for p-value plots.</li>
+<li><strong>colorbar_ax</strong> (<em>matplotlib.axes.Axes</em>) – Axes for colorbar.</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="fret_tester.Plotter1D">
+<em class="property">class </em><code class="descclassname">fret_tester.</code><code class="descname">Plotter1D</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fret_tester/plot.html#Plotter1D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fret_tester.Plotter1D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for producing 1D plots</p>
+<p>These are typically plots of lifetimes vs. p-values with fixed ratio
+between the two lifetimes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>**kwargs</strong> – Set any of the class attributes (<code class="xref py py-attr docutils literal"><span class="pre">truth_style</span></code>, …)</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="fret_tester.Plotter1D.pval_scale">
+<code class="descname">pval_scale</code><em class="property"> = 'log'</em><a class="headerlink" href="#fret_tester.Plotter1D.pval_scale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scale for the p-value axis</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fret_tester.Plotter1D.significance">
+<code class="descname">significance</code><em class="property"> = 0.01</em><a class="headerlink" href="#fret_tester.Plotter1D.significance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Significance threshold</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fret_tester.Plotter1D.pval_range">
+<code class="descname">pval_range</code><em class="property"> = (0.001, 1.0)</em><a class="headerlink" href="#fret_tester.Plotter1D.pval_range" title="Permalink to this definition">¶</a></dt>
+<dd><p>p-value axis range</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fret_tester.Plotter1D.make_axes">
+<code class="descname">make_axes</code><span class="sig-paren">(</span><em>nrows</em>, <em>n</em>, <em>ax_or_subspec</em>, <em>fig</em>, <em>colorbar='on'</em><span class="sig-paren">)</span><a class="headerlink" href="#fret_tester.Plotter1D.make_axes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create matplotlib Axes objects for plotting</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>nrows</strong> (<em>int</em>) – Number of rows. Only has an effect if <cite>ax_or_subspec</cite> is a
+<code class="xref py py-class docutils literal"><span class="pre">SubplotSpec</span></code> instance.</li>
+<li><strong>n</strong> (<em>int</em>) – Number plotss. Only has an effect if <cite>ax_or_subspec</cite> is a
+<code class="xref py py-class docutils literal"><span class="pre">SubplotSpec</span></code> instance.</li>
+<li><strong>ax_or_subspec</strong> (<em>list of matplotlib Axes or matplotlib SupblotSpec or None</em>) – If this is a <code class="xref py py-class docutils literal"><span class="pre">SubplotSpec</span></code> instance, create new Axes on
+a grid in <cite>ax_or_subspec</cite>. If this is a list of Axes, just use
+those. If <cite>None</cite>, create a <code class="xref py py-class docutils literal"><span class="pre">SubplotSpec</span></code> that fills the
+whole figure.</li>
+<li><strong>fig</strong> (<em>matplotlib.figure.Figure</em>) – Figure to create the Axes on. Only applicable if <cite>ax_or_subspec</cite>
+is a <code class="xref py py-class docutils literal"><span class="pre">SubplotSpec</span></code> instance.</li>
+<li><strong>colorbar</strong> (<em>{“on”, “empty”, “off”}, optional</em>) – If “on” or “empty”, create addtional Axes (of <code class="xref py py-attr docutils literal"><span class="pre">cbar_width</span></code>
+width) intended for a colorbar (if <cite>ax_or_subspec</cite> is a
+<code class="xref py py-class docutils literal"><span class="pre">SubplotSpec</span></code> instance) or use the last element of
+<cite>ax_or_subspec</cite> as colorbar Axes (if it is a list of Axes).
+Defaults to “on”.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>ax</strong> (<em>list of matplotlib.axes.Axes</em>) – Axes for plots</li>
+<li><strong>cbar_ax</strong> (<em>matplotlib.axes.Axes or None</em>) – Axes for colorbar (if <cite>colorbar</cite> is “on” or “empty”) or None
+(if <cite>colorbar</cite> is “off”).</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fret_tester.Plotter1D.time_unit">
+<code class="descname">time_unit</code><a class="headerlink" href="#fret_tester.Plotter1D.time_unit" title="Permalink to this definition">¶</a></dt>
+<dd><p>String describing the time unit</p>
+<p>This is used in axis labels.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fret_tester.Plotter1D.significance_opts">
+<code class="descname">significance_opts</code><em class="property"> = {'alpha': 0.4, 'color': 'gray', 'ls': 'None', 'lw': 0.001}</em><a class="headerlink" href="#fret_tester.Plotter1D.significance_opts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Options for plotting the region of significance</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="fret_tester.Plotter1D.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>test_times</em>, <em>p_vals</em>, <em>truth=None</em>, <em>ax=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fret_tester/plot.html#Plotter1D.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fret_tester.Plotter1D.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw a single 1D plot</p>
+<p>This is typically for plots of lifetimes vs. p-values with fixed ratio
+between the two lifetimes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>test_times</strong> (<em>list of lists of float</em>) – test_times[0] specifies the times the first lifetime :math:`        au_1`
+was tested against. test_times[1] specify the times the second
+lifetime :math:`    au_2` was tested against.</li>
+<li><strong>p_vals</strong> (<em>list of float</em>) – p-values corresponding to <cite>test_times</cite></li>
+<li><strong>truth</strong> (<em>tuple of float or None, optional</em>) – If not <cite>None</cite>, draw lines at these time coordinates to
+mark the true lifetime combination (if known). Defaults to <cite>None</cite>.</li>
+<li><strong>ax</strong> (<em>matplotlib.axes.Axes or None:</em>) – Axes to draw on. Use <code class="docutils literal"><span class="pre">matplotlib.pyplot.gca()</span></code> if <cite>None</cite>.
+Defaults to <cite>None</cite>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>ax</strong> (<em>matplotlib.axes.Axes</em>) – Axes for test_times[1]</li>
+<li><strong>axt</strong> (<em>matplotlib.axes.Axes</em>) – Axes for test_times[0]</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="fret_tester.Plotter1D.plot_series">
+<code class="descname">plot_series</code><span class="sig-paren">(</span><em>test_times</em>, <em>p_vals</em>, <em>truths=None</em>, <em>ax_or_subspec=None</em>, <em>fig=None</em>, <em>nrows=1</em>, <em>empty_cbar=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fret_tester/plot.html#Plotter1D.plot_series"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fret_tester.Plotter1D.plot_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw a series of 1D plots</p>
+<p>Use <a class="reference internal" href="#fret_tester.Plotter1D.plot" title="fret_tester.Plotter1D.plot"><code class="xref py py-meth docutils literal"><span class="pre">plot()</span></code></a> to draw a series of plots on a grid.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>test_times</strong> (<em>list</em>) – Each entry will be passed to <a class="reference internal" href="#fret_tester.Plotter1D.plot" title="fret_tester.Plotter1D.plot"><code class="xref py py-meth docutils literal"><span class="pre">plot()</span></code></a> as <cite>test_times</cite>
+parameter.</li>
+<li><strong>p_vals</strong> (<em>list</em>) – Each entry will be passed to <a class="reference internal" href="#fret_tester.Plotter1D.plot" title="fret_tester.Plotter1D.plot"><code class="xref py py-meth docutils literal"><span class="pre">plot()</span></code></a> as <cite>p_vals</cite> parameter.</li>
+<li><strong>truths</strong> (<em>list or None, optional</em>) – Each entry will be passed to <a class="reference internal" href="#fret_tester.Plotter1D.plot" title="fret_tester.Plotter1D.plot"><code class="xref py py-meth docutils literal"><span class="pre">plot()</span></code></a> as <cite>truth</cite> parameter.
+Defaults to None.</li>
+<li><strong>ax_or_subspec</strong> (<em>list of matplotlib Axes or matplotlib SupblotSpec or None</em>) – If this is a <code class="xref py py-class docutils literal"><span class="pre">SubplotSpec</span></code> instance, create new Axes on
+a grid in <cite>ax_or_subspec</cite>. If this is a list of Axes, just use
+those. If <cite>None</cite>, create a <code class="xref py py-class docutils literal"><span class="pre">SubplotSpec</span></code> that fills the
+whole figure.</li>
+<li><strong>fig</strong> (<em>matplotlib.figure.Figure or None</em>) – Only effective if  <cite>ax_or_subspec</cite> is a <code class="xref py py-class docutils literal"><span class="pre">SubplotSpec</span></code>
+instance. If <cite>None</cite>, use <code class="docutils literal"><span class="pre">matplotlib.pyplot.gcf()</span></code>. Defaults to
+<cite>None</cite>.</li>
+<li><strong>nrows</strong> (<em>int, optional</em>) – Number of rows. Defaults to 1.</li>
+<li><strong>empty_cbar</strong> (<em>bool, optional</em>) – Whether to allocate an (emtpy) grid entry for a colorbar. This
+is useful if the plot series is paired with a 2D series (with
+a color bar) in the same figure. Defaults to False.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>ax</strong> (<em>list of matplotlib.axes.Axes</em>) – Axes for <code class="docutils literal"><span class="pre">tt[1]</span></code>, where <code class="docutils literal"><span class="pre">tt</span></code> stands for each entry of
+<cite>test_times</cite>.</li>
+<li><strong>axt</strong> (<em>list of matplotlib.axes.Axes</em>) – Axes for <code class="docutils literal"><span class="pre">tt[0]</span></code>, where <code class="docutils literal"><span class="pre">tt</span></code> stands for each entry of
+<cite>test_times</cite>.</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Lukas Schrangl.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.0.dev',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,392 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fret_tester.fluo_models &mdash; fret-tester 1.0.dev documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="fret-tester 1.0.dev documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> fret-tester
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.dev
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../time_trace.html">Simulation of time traces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fluo_models.html">Simulation of fluorophore brightness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ks_test.html">Statistical testing of experimental data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../plot.html">Plotting of results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utils.html">Utility functions</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">fret-tester</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>fret_tester.fluo_models</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for fret_tester.fluo_models</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright 2017 Lukas Schrangl</span>
+<span class="sd">&quot;&quot;&quot;Fluorophore brightness distribution models&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numbers</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="LognormalBrightness"><a class="viewcode-back" href="../../fluo_models.html#fret_tester.LognormalBrightness">[docs]</a><span class="k">class</span> <span class="nc">LognormalBrightness</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Fluorophore brightness modeled by a lognormal distribution</span>
+
+<span class="sd">    This is intended as a base class. One needs to implement the</span>
+<span class="sd">    :py:meth:`std_from_mean` in a subclass which gives the lognormal</span>
+<span class="sd">    distribution standard deviation for a certain mean.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_mean</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mf">0.</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        max_mean : float or None</span>
+<span class="sd">            If given (and `precision` &gt; 0), precalculate parameters of the</span>
+<span class="sd">            lognormal distributions (corresponding to means and matchings stds)</span>
+<span class="sd">            from 0 to `max_mean` in steps of `precision` for a performance</span>
+<span class="sd">            gain (at cost of accuracy). Defaults to None, i.e. no</span>
+<span class="sd">            pre-computation.</span>
+<span class="sd">        precision : float or None</span>
+<span class="sd">            Precision of pre-computed lognormal parameters. The smaller, the</span>
+<span class="sd">            more accurate, as long as it is &gt; 0. Defaults to 0, i.e. no</span>
+<span class="sd">            pre-computation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cached_params</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cached_precision</span> <span class="o">=</span> <span class="n">precision</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_test</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">max_mean</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Number</span><span class="p">)</span> <span class="ow">and</span> <span class="n">max_mean</span> <span class="o">&gt;</span> <span class="mf">0.</span> <span class="ow">and</span>
+                <span class="n">precision</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">):</span>
+            <span class="c1"># Pre-compute lognormal distribution parameters to save time later</span>
+            <span class="c1"># (calculating log is expensive)</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_mean</span><span class="o">+</span><span class="n">precision</span><span class="p">,</span> <span class="n">precision</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cached_params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">p</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+
+<div class="viewcode-block" id="LognormalBrightness.parameters"><a class="viewcode-back" href="../../fluo_models.html#fret_tester.LognormalBrightness.parameters">[docs]</a>    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">m</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate lognormal parameters from desired mean</span>
+
+<span class="sd">        Compute :math:`\mu` and :math:`\sigma` of the Gaussian distribution</span>
+<span class="sd">        that the lognormal distribution is based on such that the lognormal</span>
+<span class="sd">        distribution will have mean `m` and standard deviation</span>
+<span class="sd">        ``std_from_mean(m)`` (see :py:meth:`__init__`).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        m : array_like</span>
+<span class="sd">            Mean value for which the lognormal parameters are desired</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        mu : numpy.ndarray</span>
+<span class="sd">            :math:`\mu` of the underlying Gaussian</span>
+<span class="sd">        sigma : numpy.ndarray</span>
+<span class="sd">            :math:`\sigma` of the underlying Gaussian</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">std_from_mean</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+
+        <span class="n">mu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">sigma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="c1"># m &gt; 0; m == 0 needs special treatment since log() will fail</span>
+        <span class="n">gt0</span> <span class="o">=</span> <span class="n">m</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="n">m_gt0</span> <span class="o">=</span> <span class="n">m</span><span class="p">[</span><span class="n">gt0</span><span class="p">]</span>
+        <span class="n">s_gt0</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="n">gt0</span><span class="p">]</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">s_gt0</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">m_gt0</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">mu</span><span class="p">[</span><span class="n">gt0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">m_gt0</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>  <span class="c1"># Inverse formulas for lognormal</span>
+        <span class="n">sigma</span><span class="p">[</span><span class="n">gt0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>       <span class="c1"># mean and std</span>
+
+        <span class="c1"># m == 0 ==&gt; mu = -np.inf</span>
+        <span class="n">mu</span><span class="p">[</span><span class="o">~</span><span class="n">gt0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="n">sigma</span><span class="p">[</span><span class="o">~</span><span class="n">gt0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">return</span> <span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span></div>
+
+<div class="viewcode-block" id="LognormalBrightness.generate"><a class="viewcode-back" href="../../fluo_models.html#fret_tester.LognormalBrightness.generate">[docs]</a>    <span class="k">def</span> <span class="nf">generate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">m</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Draw random value from the brightness distribution with given mean</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        m : array_like</span>
+<span class="sd">            Mean values. For each entry, draw a random number from the</span>
+<span class="sd">            brightness distribution whose mean value is this entry.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        numpy.ndarray</span>
+<span class="sd">            Random brightness values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">m</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_precision</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+            <span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_params</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_test</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">mu</span> <span class="o">*</span> <span class="n">sigma</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">lognormal</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LognormalBrightness.__call__"><a class="viewcode-back" href="../../fluo_models.html#fret_tester.LognormalBrightness.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">m</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Synonymous for :py:meth:`generate`&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">m</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LognormalBrightness.std_from_mean"><a class="viewcode-back" href="../../fluo_models.html#fret_tester.LognormalBrightness.std_from_mean">[docs]</a>    <span class="k">def</span> <span class="nf">std_from_mean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">m</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get standard deviation for given mean</span>
+
+<span class="sd">        This needs to be implemented in a subclass.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        m : array-like</span>
+<span class="sd">            Mean values to calculate standard deviations for.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        numpy.ndarray</span>
+<span class="sd">            Standard deviations corresponding to means.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;`std_from_mean` needs to be implemented.&quot;</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="PolyLnBrightness"><a class="viewcode-back" href="../../fluo_models.html#fret_tester.PolyLnBrightness">[docs]</a><span class="k">class</span> <span class="nc">PolyLnBrightness</span><span class="p">(</span><span class="n">LognormalBrightness</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;LognormalBrightness subclass with polynomial mean-vs.-std relation</span>
+
+<span class="sd">    This is a subclass of :py:class:`LognormalBrightness` where the relation</span>
+<span class="sd">    between mean and standard deviation is described by a polynomial.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parms</span><span class="p">,</span> <span class="n">max_mean</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mf">0.</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parms : list of float</span>
+<span class="sd">            Polynomial coefficients in decreasing order</span>
+<span class="sd">        max_mean : float or None</span>
+<span class="sd">            If given (and `precision` &gt; 0), precalculate parameters of the</span>
+<span class="sd">            lognormal distributions (corresponding to means and matchings stds)</span>
+<span class="sd">            from 0 to `max_mean` in steps of `precision` for a performance</span>
+<span class="sd">            gain (at cost of accuracy). Defaults to None, i.e. no</span>
+<span class="sd">            pre-computation.</span>
+<span class="sd">        precision : float or None</span>
+<span class="sd">            Precision of pre-computed lognormal parameters. The smaller, the</span>
+<span class="sd">            more accurate, as long as it is &gt; 0. Defaults to 0, i.e. no</span>
+<span class="sd">            pre-computation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">poly</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">poly1d</span><span class="p">(</span><span class="n">parms</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">max_mean</span><span class="p">,</span> <span class="n">precision</span><span class="p">)</span>
+
+<div class="viewcode-block" id="PolyLnBrightness.std_from_mean"><a class="viewcode-back" href="../../fluo_models.html#fret_tester.PolyLnBrightness.std_from_mean">[docs]</a>    <span class="k">def</span> <span class="nf">std_from_mean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">m</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get std. deviation for given mean according to polynomial relation</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        m : array-like</span>
+<span class="sd">            Mean values to calculate standard deviations for.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        numpy.ndarray</span>
+<span class="sd">            Standard deviations corresponding to means.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">poly</span><span class="p">(</span><span class="n">m</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Lukas Schrangl.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.dev',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

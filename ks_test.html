@@ -1,0 +1,355 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Statistical testing of experimental data &mdash; fret-tester 1.0.dev documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="fret-tester 1.0.dev documentation" href="index.html"/>
+        <link rel="prev" title="Simulation of fluorophore brightness" href="fluo_models.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> fret-tester
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.dev
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="time_trace.html">Simulation of time traces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fluo_models.html">Simulation of fluorophore brightness</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Statistical testing of experimental data</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">fret-tester</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Statistical testing of experimental data</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/ks_test.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <span class="target" id="module-fret_tester"></span><div class="section" id="statistical-testing-of-experimental-data">
+<h1>Statistical testing of experimental data<a class="headerlink" href="#statistical-testing-of-experimental-data" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="fret_tester.batch_test">
+<code class="descclassname">fret_tester.</code><code class="descname">batch_test</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fret_tester/ks_test.html#batch_test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fret_tester.batch_test" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call <cite>batch_test</cite> with <cite>TwoStateExpTruth</cite> and <cite>simulate_dataset</cite></p>
+<p>This calls the <a class="reference internal" href="#fret_tester.BatchTester.batch_test" title="fret_tester.BatchTester.batch_test"><code class="xref py py-meth docutils literal"><span class="pre">BatchTester.batch_test()</span></code></a> method for a
+<a class="reference internal" href="#fret_tester.BatchTester" title="fret_tester.BatchTester"><code class="xref py py-class docutils literal"><span class="pre">BatchTester</span></code></a> instance which uses
+<code class="xref py py-class docutils literal"><span class="pre">time_trace.TwoStateExpTruth</span></code> for state change trajectory
+simulation and <code class="xref py py-func docutils literal"><span class="pre">time_trace.simulate_dataset()</span></code> for FRET
+simulation.</p>
+<p>For details about parameters, return values, etc. see
+<a class="reference internal" href="#fret_tester.BatchTester.batch_test" title="fret_tester.BatchTester.batch_test"><code class="xref py py-meth docutils literal"><span class="pre">BatchTester.batch_test()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="fret_tester.BatchTester">
+<em class="property">class </em><code class="descclassname">fret_tester.</code><code class="descname">BatchTester</code><span class="sig-paren">(</span><em>truth_generator</em>, <em>sim_func</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fret_tester/ks_test.html#BatchTester"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fret_tester.BatchTester" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>truth_generator</strong> (<em>type</em>) – Class to be initialized with lifetimes and FRET efficiencies.
+Instances should be callable with one parameter, the minimum
+time trace length and return a ground truth time trace.
+<a class="reference internal" href="time_trace.html#fret_tester.TwoStateExpTruth" title="fret_tester.TwoStateExpTruth"><code class="xref py py-class docutils literal"><span class="pre">TwoStateExpTruth</span></code></a> would be an example.</li>
+<li><strong>sim_func</strong> (<em>callable</em>) – Function to simulate a dataset. See <a class="reference internal" href="time_trace.html#fret_tester.simulate_dataset" title="fret_tester.simulate_dataset"><code class="xref py py-func docutils literal"><span class="pre">simulate_dataset()</span></code></a>
+for an example and the call signature.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="fret_tester.BatchTester.batch_test">
+<code class="descname">batch_test</code><span class="sig-paren">(</span><em>test_times</em>, <em>efficiencies</em>, <em>exposure_time</em>, <em>data_points</em>, <em>photons</em>, <em>experiment_data</em>, <em>donor_brightness</em>, <em>acceptor_brightness</em>, <em>nprocs=1</em>, <em>nchunks=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fret_tester/ks_test.html#BatchTester.batch_test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fret_tester.BatchTester.batch_test" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test experiment data against many simulated data sets</p>
+<p>For each set of (test) life times, simulate smFRET events and compare
+to the experiment data using a two-sample KS test. The difference is
+expressed in terms of the p-value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>test_times</strong> (<em>array_like</em>) – Lifetimes to test experiment data against. Run simulations for
+each set of test lifes. <code class="docutils literal"><span class="pre">test_times[i]</span></code> has to be an array of
+test times for the i-th state.</li>
+<li><strong>efficiencies</strong> (<em>array_like</em>) – Array of FRET efficiencies</li>
+<li><strong>exposure_time</strong> (<em>float</em>) – Exposure time as used in the experiment</li>
+<li><strong>data_points</strong> (<em>int</em>) – Number of smFRET data points to simulate</li>
+<li><strong>photons</strong> (<em>int</em>) – Mean number of photons emitted per exposure</li>
+<li><strong>experiment_data</strong> (<em>array_like</em>) – smFRET efficiency values from the experiment</li>
+<li><strong>donor_brightness, acceptor_brightness</strong> (<em>callable</em>) – Takes one argument, an array of mean brightness values. For each
+entry <cite>m</cite> it returns a random value drawn from the brightness
+distribution with mean <cite>m</cite>.</li>
+<li><strong>nprocs</strong> (<em>int, optional</em>) – Number of processes to use for parallel simulation. Defaults to 1,
+i.e. no multiprocessing, since multiprocessing requires additional
+measures, such as proper <code class="docutils literal"><span class="pre">if</span> <span class="pre">__name__</span> <span class="pre">==</span> <span class="pre">&quot;__main__&quot;</span></code> blocks.</li>
+<li><strong>nchunks</strong> (<em>int or None, optional</em>) – Number of chunks into which to split the data for parallel
+simulation. If <cite>None</cite> (default), use <code class="docutils literal"><span class="pre">nprocs</span> <span class="pre">*</span> <span class="pre">2</span></code>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">p-values returned by KS tests. The array has the same shape as
+the <cite>test_times</cite> minus the first dimension.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">numpy.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="fret_tester.BatchTester.frame_time">
+<code class="descname">frame_time</code><span class="sig-paren">(</span><em>lifetimes</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fret_tester/ks_test.html#BatchTester.frame_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fret_tester.BatchTester.frame_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate a frame time from lifetimes to avoid autocorrelation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>lifetimes</strong> (<em>list of float</em>) – State lifetimes</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A frame time that avoids autocorrelation</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="fret_tester.combine_test_results">
+<code class="descclassname">fret_tester.</code><code class="descname">combine_test_results</code><span class="sig-paren">(</span><em>results</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fret_tester/ks_test.html#combine_test_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fret_tester.combine_test_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given multiple test results, calculate p-values for global consistency</p>
+<p>Multiple tests at e.g. different exposure times will lead to multiple
+areas of consistency. Since lifetimes should not depend on exposure times,
+one would only consider those lifetime combinations consistent which yield
+high p-values for all exposure times. This is done by calculating</p>
+<div class="math">
+\[\hat{p}(\tau_1, \tau_2) = 1 - (1 -
+p_\text{min}(\tau_1, \tau_2))^{|T_\text{ex}|},\]</div>
+<p>where <span class="math">\(T_\text{ex}\)</span> is the set of test results.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>results</strong> (<em>list of array-like, shape(m, n)</em>) – Test results</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Array of <span class="math">\(\hat{p}\)</span> values</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">numpy.ndarray, shape(m, n)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="fluo_models.html" class="btn btn-neutral" title="Simulation of fluorophore brightness" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Lukas Schrangl.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.0.dev',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

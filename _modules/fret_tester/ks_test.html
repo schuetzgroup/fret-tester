@@ -1,0 +1,456 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fret_tester.ks_test &mdash; fret-tester 1.0.dev documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="fret-tester 1.0.dev documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> fret-tester
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.dev
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../time_trace.html">Simulation of time traces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fluo_models.html">Simulation of fluorophore brightness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ks_test.html">Statistical testing of experimental data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../plot.html">Plotting of results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utils.html">Utility functions</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">fret-tester</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>fret_tester.ks_test</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for fret_tester.ks_test</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright 2017 Lukas Schrangl</span>
+<span class="sd">&quot;&quot;&quot;Tools for comparing simulated smFRET data to experimental data&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">multiprocessing</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">time_trace</span>
+
+
+<div class="viewcode-block" id="BatchTester"><a class="viewcode-back" href="../../ks_test.html#fret_tester.BatchTester">[docs]</a><span class="k">class</span> <span class="nc">BatchTester</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">truth_generator</span><span class="p">,</span> <span class="n">sim_func</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        truth_generator : type</span>
+<span class="sd">            Class to be initialized with lifetimes and FRET efficiencies.</span>
+<span class="sd">            Instances should be callable with one parameter, the minimum</span>
+<span class="sd">            time trace length and return a ground truth time trace.</span>
+<span class="sd">            :py:class:`TwoStateExpTruth` would be an example.</span>
+<span class="sd">        sim_func : callable</span>
+<span class="sd">            Function to simulate a dataset. See :py:func:`simulate_dataset`</span>
+<span class="sd">            for an example and the call signature.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">truth_generator</span> <span class="o">=</span> <span class="n">truth_generator</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sim_func</span> <span class="o">=</span> <span class="n">sim_func</span>
+
+<div class="viewcode-block" id="BatchTester.batch_test"><a class="viewcode-back" href="../../ks_test.html#fret_tester.BatchTester.batch_test">[docs]</a>    <span class="k">def</span> <span class="nf">batch_test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_times</span><span class="p">,</span> <span class="n">efficiencies</span><span class="p">,</span> <span class="n">exposure_time</span><span class="p">,</span> <span class="n">data_points</span><span class="p">,</span>
+                   <span class="n">photons</span><span class="p">,</span> <span class="n">experiment_data</span><span class="p">,</span> <span class="n">donor_brightness</span><span class="p">,</span>
+                   <span class="n">acceptor_brightness</span><span class="p">,</span>
+                   <span class="n">nprocs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nchunks</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Test experiment data against many simulated data sets</span>
+
+<span class="sd">        For each set of (test) life times, simulate smFRET events and compare</span>
+<span class="sd">        to the experiment data using a two-sample KS test. The difference is</span>
+<span class="sd">        expressed in terms of the p-value.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        test_times : array_like</span>
+<span class="sd">            Lifetimes to test experiment data against. Run simulations for</span>
+<span class="sd">            each set of test lifes. ``test_times[i]`` has to be an array of</span>
+<span class="sd">            test times for the i-th state.</span>
+<span class="sd">        efficiencies : array_like</span>
+<span class="sd">            Array of FRET efficiencies</span>
+<span class="sd">        exposure_time : float</span>
+<span class="sd">            Exposure time as used in the experiment</span>
+<span class="sd">        data_points : int</span>
+<span class="sd">            Number of smFRET data points to simulate</span>
+<span class="sd">        photons : int</span>
+<span class="sd">            Mean number of photons emitted per exposure</span>
+<span class="sd">        experiment_data : array_like</span>
+<span class="sd">            smFRET efficiency values from the experiment</span>
+<span class="sd">        donor_brightness, acceptor_brightness : callable</span>
+<span class="sd">            Takes one argument, an array of mean brightness values. For each</span>
+<span class="sd">            entry `m` it returns a random value drawn from the brightness</span>
+<span class="sd">            distribution with mean `m`.</span>
+<span class="sd">        nprocs : int, optional</span>
+<span class="sd">            Number of processes to use for parallel simulation. Defaults to 1,</span>
+<span class="sd">            i.e. no multiprocessing, since multiprocessing requires additional</span>
+<span class="sd">            measures, such as proper ``if __name__ == &quot;__main__&quot;`` blocks.</span>
+<span class="sd">        nchunks : int or None, optional</span>
+<span class="sd">            Number of chunks into which to split the data for parallel</span>
+<span class="sd">            simulation. If `None` (default), use ``nprocs * 2``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        numpy.ndarray</span>
+<span class="sd">            p-values returned by KS tests. The array has the same shape as</span>
+<span class="sd">            the `test_times` minus the first dimension.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Transposing is necessary for broadcasting to work in case</span>
+        <span class="c1"># `efficiencies` is just a 1D array. Additionally, the flattened result</span>
+        <span class="c1"># can be  passed directly to `batch_test_worker`, which can iterate</span>
+        <span class="c1"># over it.</span>
+        <span class="n">lt</span><span class="p">,</span> <span class="n">ef</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_arrays</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">test_times</span><span class="p">),</span>
+                                     <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">efficiencies</span><span class="p">))</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">lt</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">num_states</span> <span class="o">=</span> <span class="n">lt</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># &quot;Flatten&quot; s.t. each line gives a set of life times (or efficiencies,</span>
+        <span class="c1"># respectively). This is necessary for the `batch_test_worker` call.</span>
+        <span class="n">lt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">lt</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_states</span><span class="p">),</span> <span class="s2">&quot;C&quot;</span><span class="p">)</span>
+        <span class="n">ef</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">ef</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_states</span><span class="p">),</span> <span class="s2">&quot;C&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">nprocs</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># If no multiprocessing is wanted, just execute the worker function</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_batch_test_worker</span><span class="p">(</span><span class="n">lt</span><span class="p">,</span> <span class="n">ef</span><span class="p">,</span> <span class="n">exposure_time</span><span class="p">,</span> <span class="n">data_points</span><span class="p">,</span>
+                                          <span class="n">photons</span><span class="p">,</span> <span class="n">experiment_data</span><span class="p">,</span>
+                                          <span class="n">donor_brightness</span><span class="p">,</span>
+                                          <span class="n">acceptor_brightness</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Use multiprocessing</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">nchunks</span><span class="p">:</span>
+                <span class="c1"># This seems to be a smart choice according to conducted</span>
+                <span class="c1"># benchmarks</span>
+                <span class="n">nchunks</span> <span class="o">=</span> <span class="n">nprocs</span> <span class="o">*</span> <span class="mi">2</span>
+            <span class="c1"># Use the &quot;spawn&quot; method to create processes. At any rate, don&#39;t</span>
+            <span class="c1"># use  &quot;fork&quot;, since children inherit the parent&#39;s RNG state and</span>
+            <span class="c1"># every  child process will generate the same random numbers.</span>
+            <span class="k">with</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">get_context</span><span class="p">(</span><span class="s2">&quot;spawn&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">nprocs</span><span class="p">)</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
+                <span class="c1"># Split data into `nchunks` chunks.</span>
+                <span class="n">lt_s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array_split</span><span class="p">(</span><span class="n">lt</span><span class="p">,</span> <span class="n">nchunks</span><span class="p">)</span>
+                <span class="n">ef_s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array_split</span><span class="p">(</span><span class="n">ef</span><span class="p">,</span> <span class="n">nchunks</span><span class="p">)</span>
+
+                <span class="n">ares</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">l</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lt_s</span><span class="p">,</span> <span class="n">ef_s</span><span class="p">):</span>
+                    <span class="c1"># Async call to the worker function in the pool&#39;s processes</span>
+                    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">exposure_time</span><span class="p">,</span> <span class="n">data_points</span><span class="p">,</span> <span class="n">photons</span><span class="p">,</span>
+                            <span class="n">experiment_data</span><span class="p">,</span> <span class="n">donor_brightness</span><span class="p">,</span>
+                            <span class="n">acceptor_brightness</span><span class="p">)</span>
+                    <span class="n">r</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">apply_async</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_batch_test_worker</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+                    <span class="c1"># Keep the async call results</span>
+                    <span class="n">ares</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+
+                <span class="c1"># Wait for the results and concatenate them</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">ares</span><span class="p">])</span>
+
+        <span class="c1"># Reshape to original shape and transpose again to undo intial</span>
+        <span class="c1"># transpose</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">ret</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">T</span></div>
+
+<div class="viewcode-block" id="BatchTester.frame_time"><a class="viewcode-back" href="../../ks_test.html#fret_tester.BatchTester.frame_time">[docs]</a>    <span class="k">def</span> <span class="nf">frame_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lifetimes</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate a frame time from lifetimes to avoid autocorrelation</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        lifetimes : list of float</span>
+<span class="sd">            State lifetimes</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            A frame time that avoids autocorrelation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">max</span><span class="p">(</span><span class="n">lifetimes</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_batch_test_worker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_times</span><span class="p">,</span> <span class="n">efficiencies</span><span class="p">,</span> <span class="n">exposure_time</span><span class="p">,</span>
+                           <span class="n">data_points</span><span class="p">,</span> <span class="n">photons</span><span class="p">,</span> <span class="n">experiment_data</span><span class="p">,</span>
+                           <span class="n">donor_brightness</span><span class="p">,</span> <span class="n">acceptor_brightness</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Test experiment data against many simulated data sets (worker func)</span>
+
+<span class="sd">        For each set of (test) life times, simulate smFRET events and compare</span>
+<span class="sd">        to the experiment data using a two-sample KS test. The difference is</span>
+<span class="sd">        expressed in terms of the KS statistics.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        test_times : array-like, shape(n, 2)</span>
+<span class="sd">            Life times to test experiment data against. Run simulations for</span>
+<span class="sd">            each set of test lifes. ``test_times[i]`` a set of test life times</span>
+<span class="sd">            (one per state). This is different (transposed) from the</span>
+<span class="sd">            `test_times` argument of :py:meth:`batch_test`.</span>
+<span class="sd">        efficiencies : array_like, shape(n, 2)</span>
+<span class="sd">            Array of FRET efficiencies. Has to be of the same shape as</span>
+<span class="sd">            `test_times`.</span>
+<span class="sd">        exposure_time : float</span>
+<span class="sd">            Exposure time as used in the experiment</span>
+<span class="sd">        data_points : int</span>
+<span class="sd">            Number of smFRET data points to simulate</span>
+<span class="sd">        photons : int</span>
+<span class="sd">            Mean number of photons emitted per exposure</span>
+<span class="sd">        experiment_data : array_like</span>
+<span class="sd">            smFRET efficiency values from the experiment</span>
+<span class="sd">        donor_brightness, acceptor_brightness : callable</span>
+<span class="sd">            Takes one argument, an array of mean brightness values. For each</span>
+<span class="sd">            entry `m` it returns a random value drawn from the brightness</span>
+<span class="sd">            distribution with mean `m`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            p-values returned by KS tests.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">lt</span><span class="p">,</span> <span class="n">ef</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">test_times</span><span class="p">,</span> <span class="n">efficiencies</span><span class="p">):</span>
+            <span class="n">truth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">truth_generator</span><span class="p">(</span><span class="n">lt</span><span class="p">,</span> <span class="n">ef</span><span class="p">)</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_func</span><span class="p">(</span><span class="n">truth</span><span class="p">,</span> <span class="n">exposure_time</span><span class="p">,</span> <span class="n">data_points</span><span class="p">,</span> <span class="n">photons</span><span class="p">,</span>
+                              <span class="n">donor_brightness</span><span class="p">,</span> <span class="n">acceptor_brightness</span><span class="p">,</span>
+                              <span class="n">frame_time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">frame_time</span><span class="p">(</span><span class="n">lt</span><span class="p">))</span>
+            <span class="n">ks</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">ks_2samp</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">exp_eff</span><span class="p">,</span> <span class="n">experiment_data</span><span class="p">)</span>
+            <span class="n">ret</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret</span></div>
+
+
+<span class="n">numpy_tester</span> <span class="o">=</span> <span class="n">BatchTester</span><span class="p">(</span><span class="n">time_trace</span><span class="o">.</span><span class="n">TwoStateExpTruth</span><span class="p">,</span>
+                           <span class="n">time_trace</span><span class="o">.</span><span class="n">simulate_dataset</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="batch_test"><a class="viewcode-back" href="../../ks_test.html#fret_tester.batch_test">[docs]</a><span class="k">def</span> <span class="nf">batch_test</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Call `batch_test` with `TwoStateExpTruth` and `simulate_dataset`</span>
+
+<span class="sd">    This calls the :py:meth:`BatchTester.batch_test` method for a</span>
+<span class="sd">    :py:class:`BatchTester` instance which uses</span>
+<span class="sd">    :py:class:`time_trace.TwoStateExpTruth` for state change trajectory</span>
+<span class="sd">    simulation and :py:func:`time_trace.simulate_dataset` for FRET</span>
+<span class="sd">    simulation.</span>
+
+<span class="sd">    For details about parameters, return values, etc. see</span>
+<span class="sd">    :py:meth:`BatchTester.batch_test`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">numpy_tester</span><span class="o">.</span><span class="n">batch_test</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="combine_test_results"><a class="viewcode-back" href="../../ks_test.html#fret_tester.combine_test_results">[docs]</a><span class="k">def</span> <span class="nf">combine_test_results</span><span class="p">(</span><span class="n">results</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Given multiple test results, calculate p-values for global consistency</span>
+
+<span class="sd">    Multiple tests at e.g. different exposure times will lead to multiple</span>
+<span class="sd">    areas of consistency. Since lifetimes should not depend on exposure times,</span>
+<span class="sd">    one would only consider those lifetime combinations consistent which yield</span>
+<span class="sd">    high p-values for all exposure times. This is done by calculating</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \hat{p}(\tau_1, \tau_2) = 1 - (1 -</span>
+<span class="sd">        p_\text{min}(\tau_1, \tau_2))^{|T_\text{ex}|},</span>
+
+<span class="sd">    where :math:`T_\text{ex}` is the set of test results.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    results : list of array-like, shape(m, n)</span>
+<span class="sd">        Test results</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    numpy.ndarray, shape(m, n)</span>
+<span class="sd">        Array of :math:`\hat{p}` values</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span><span class="o">**</span><span class="n">n</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Lukas Schrangl.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.dev',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

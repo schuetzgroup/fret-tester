@@ -1,0 +1,418 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Simulation of time traces &mdash; fret-tester 1.0.dev documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="fret-tester 1.0.dev documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> fret-tester
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.dev
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Simulation of time traces</a></li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">fret-tester</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Simulation of time traces</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/time_trace.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <span class="target" id="module-fret_tester"></span><div class="section" id="simulation-of-time-traces">
+<h1>Simulation of time traces<a class="headerlink" href="#simulation-of-time-traces" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="fret_tester.TwoStateExpTruth">
+<em class="property">class </em><code class="descclassname">fret_tester.</code><code class="descname">TwoStateExpTruth</code><span class="sig-paren">(</span><em>lifetimes</em>, <em>efficiencies</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fret_tester/time_trace.html#TwoStateExpTruth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fret_tester.TwoStateExpTruth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simulate ground truth smFRET time traces (two states, exp. lifetimes)</p>
+<p>Lifetimes are exponentially distributed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>life_times</strong> (<em>array_like, shape=(2,)</em>) – Mean (of the exponentially distributed) life times of the states</li>
+<li><strong>efficiencies</strong> (<em>array_like, shape=(2,)</em>) – FRET efficiencies for the states</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="fret_tester.TwoStateExpTruth.generate">
+<code class="descname">generate</code><span class="sig-paren">(</span><em>duration</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fret_tester/time_trace.html#TwoStateExpTruth.generate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fret_tester.TwoStateExpTruth.generate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a time trace that of at least <cite>duration</cite> length</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>duration</strong> (<em>float</em>) – Minimum duration of the time trace. In practice, it will be
+longer.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
+<li><strong>time</strong> (<em>numpy.ndarray</em>) – Time points of state changes. These are bi-exponentially
+distributed.</li>
+<li><strong>eff</strong> (<em>numpy.ndarray</em>) – Corresponding FRET efficiencies. The <cite>i</cite>-th entry lasts from
+<code class="docutils literal"><span class="pre">time[i-1]</span></code> (or 0 for i=0) to <code class="docutils literal"><span class="pre">time[i]</span></code>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="fret_tester.TwoStateExpTruth.__call__">
+<code class="descname">__call__</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fret_tester/time_trace.html#TwoStateExpTruth.__call__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fret_tester.TwoStateExpTruth.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Synonym for <a class="reference internal" href="#fret_tester.TwoStateExpTruth.generate" title="fret_tester.TwoStateExpTruth.generate"><code class="xref py py-func docutils literal"><span class="pre">generate()</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="fret_tester.sample">
+<code class="descclassname">fret_tester.</code><code class="descname">sample</code><span class="sig-paren">(</span><em>time</em>, <em>eff</em>, <em>exposure_time</em>, <em>data_points=inf</em>, <em>frame_time=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fret_tester/time_trace.html#sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fret_tester.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sample the true smFRET time trace with finite exposure time</p>
+<p>This means that there will be integration over all transitions that happen
+during a single exposure.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>time</strong> (<em>array_like, shape=(n,)</em>) – Sequence of transition times as returned by <code class="xref py py-func docutils literal"><span class="pre">two_state_truth()</span></code></li>
+<li><strong>eff</strong> (<em>array_like, shape=(n,)</em>) – Sequence of FRET efficiencies as returned by <code class="xref py py-func docutils literal"><span class="pre">two_state_truth()</span></code></li>
+<li><strong>exposure_time</strong> (<em>float</em>) – Exposure time for sampling. All transition during a exposure will be
+integrated.</li>
+<li><strong>data_points</strong> (<em>scalar, optional</em>) – Number of data points to return. If the FRET time trace is too short,
+the maximum number of data points the trace allows is returned.
+Defaults to infinity.</li>
+<li><strong>frame_time</strong> (<em>float, optional</em>) – Total time for one frame, i.e. minimum time between two data points.
+If this is less than <cite>exposure_time</cite>, use <cite>exposure_time</cite>. Defaults
+to 0, i.e. use <cite>exposure_time</cite>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>sample_time</strong> (<em>numpy.ndarray</em>) – Time points of sampling. They are evenly spaced with <cite>exposure_time</cite>
+difference.</li>
+<li><strong>sample_eff</strong> (<em>numpy.ndarray</em>) – Corresponding sampled FRET efficiencies</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="fret_tester.experiment">
+<code class="descclassname">fret_tester.</code><code class="descname">experiment</code><span class="sig-paren">(</span><em>eff</em>, <em>photons</em>, <em>donor_brightness</em>, <em>acceptor_brightness</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fret_tester/time_trace.html#experiment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fret_tester.experiment" title="Permalink to this definition">¶</a></dt>
+<dd><p>From sampled smFRET time traces, simulate (noisy) experiment results</p>
+<p>This adds noise coming from the rather broad brightness distributions of
+fluorophores to the time traces, resulting in a trace as one would get
+out of an experiment.</p>
+<p>The acceptor signal is generated by
+<code class="docutils literal"><span class="pre">acceptor_brightness(eff</span> <span class="pre">*</span> <span class="pre">photons)</span></code>, the donor signal is generated
+by <code class="docutils literal"><span class="pre">donor_brightness((1</span> <span class="pre">-</span> <span class="pre">eff)</span> <span class="pre">*</span> <span class="pre">photons)</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>eff</strong> (<em>array_like</em>) – Sampled FRET efficiencies</li>
+<li><strong>photons</strong> (<em>float</em>) – Mean summed number of photons emitted by donor and acceptor per
+exposure.</li>
+<li><strong>donor_brightness, acceptor_brightness</strong> (<em>callable</em>) – Takes one argument, an array of mean brightness values. For each entry
+<cite>m</cite> it returns a random value drawn from the brightness distribution
+with mean <cite>m</cite>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>donor_noisy, acceptor_noisy</strong> – Donor and acceptor fluorescence including noise</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">numpy.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="fret_tester.DataSet">
+<em class="property">class </em><code class="descclassname">fret_tester.</code><code class="descname">DataSet</code><a class="headerlink" href="#fret_tester.DataSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Named tuple containing a full data set of a simulation run</p>
+<dl class="attribute">
+<dt>
+<code class="descname">true_time, true_eff</code></dt>
+<dd><p><em>array_like</em> – True state trajectory as produced by <code class="xref py py-func docutils literal"><span class="pre">two_state_truth()</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">samp_time, samp_eff</code></dt>
+<dd><p><em>array_like</em> – Sampled state trajectory as produced by <a class="reference internal" href="#fret_tester.sample" title="fret_tester.sample"><code class="xref py py-func docutils literal"><span class="pre">sample()</span></code></a></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">exp_don, exp_acc</code></dt>
+<dd><p><em>array_like</em> – (Noisy) donor and acceptor intensities as produced by
+<a class="reference internal" href="#fret_tester.experiment" title="fret_tester.experiment"><code class="xref py py-func docutils literal"><span class="pre">experiment()</span></code></a></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="fret_tester.DataSet.exp_eff">
+<code class="descname">exp_eff</code><a class="headerlink" href="#fret_tester.DataSet.exp_eff" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>array_like</em> – Experiment FRET efficiency, i.e. <code class="docutils literal"><span class="pre">exp_acc</span> <span class="pre">/</span> <span class="pre">(exp_acc</span> <span class="pre">+</span> <span class="pre">exp_don)</span></code></p>
+</dd></dl>
+
+<p>Create new instance of DataSet(true_time, true_eff, samp_time, samp_eff, exp_don, exp_acc, exp_eff)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="fret_tester.simulate_dataset">
+<code class="descclassname">fret_tester.</code><code class="descname">simulate_dataset</code><span class="sig-paren">(</span><em>truth</em>, <em>exposure_time</em>, <em>data_points</em>, <em>photons</em>, <em>donor_brightness</em>, <em>acceptor_brightness</em>, <em>frame_time=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fret_tester/time_trace.html#simulate_dataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fret_tester.simulate_dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simulate a whole data set</p>
+<p>Consecutively run <code class="xref py py-func docutils literal"><span class="pre">two_state_truth()</span></code>, <a class="reference internal" href="#fret_tester.sample" title="fret_tester.sample"><code class="xref py py-func docutils literal"><span class="pre">sample()</span></code></a>, and
+<a class="reference internal" href="#fret_tester.experiment" title="fret_tester.experiment"><code class="xref py py-func docutils literal"><span class="pre">experiment()</span></code></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>truth</strong> (<em>callable or tuple of numpy.ndarray, shape=(n,)</em>) – Ground truth smFRET time trace. If this is an array, <code class="docutils literal"><span class="pre">truth[0]</span></code>
+should be the sequence of time points where state transitions
+occur and <code class="docutils literal"><span class="pre">truth[1]</span></code> the FRET efficiency between the (i-1)-th
+time point (or 0 for i = 0) and the i-th time point.
+If this is callable, it should return a ground truth smFRET time
+trace as described above. It should take one float parameter, which is
+the minimum duration of the generated trace.</li>
+<li><strong>exposure_time</strong> (<em>float</em>) – Exposure time for sampling. All transition during a exposure will be
+integrated.</li>
+<li><strong>data_points</strong> (<em>scalar, optional</em>) – Number of data points to return. If the FRET time trace is too short,
+the maximum number of data points the trace allows is returned.
+Defaults to infinity.</li>
+<li><strong>photons</strong> (<em>float</em>) – Mean summed number of photons emitted by donor and acceptor per
+exposure.</li>
+<li><strong>donor_brightness, acceptor_brightness</strong> (<em>callable</em>) – Takes one argument, an array of mean brightness values. For each entry
+<cite>m</cite> it returns a random value drawn from the brightness distribution.</li>
+<li><strong>frame_time</strong> (<em>float, optional</em>) – Total time for one frame, i.e. minimum time between two data points.
+If this is less than <cite>exposure_time</cite>, use <cite>exposure_time</cite>. Defaults
+to 0, i.e. use <cite>exposure_time</cite>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Collected simulated data</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#fret_tester.DataSet" title="fret_tester.DataSet">DataSet</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Lukas Schrangl.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.0.dev',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
