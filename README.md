@@ -23,7 +23,7 @@ Installation
 - Download source (either use `git clone` or download a snapshot zip and unpack
   it somewhere).
 - Go to the topmost folder of the source and run `python setup.py install`
-  or add the topmost folder to the Python path
+  or add the topmost folder to the Python path.
 
 
 <a name="Schrangl2018"></a>(1) Schrangl, Lukas; Göhring, Janett; Schütz,
