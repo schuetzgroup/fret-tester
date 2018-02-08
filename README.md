@@ -31,4 +31,4 @@ Installation
   Gerhard J. (2018):
   “Kinetic analysis of single molecule FRET transitions without trajectories.”
   In: The Journal of Chemical Physics, 148 (2018), H. 12, p. 123328.
-  Available at: [DOI: 10.1063/1.5006038](https://doi.org/10.1063/1.5006038>)
+  Available at: [DOI: 10.1063/1.5006038](https://doi.org/10.1063/1.5006038)
