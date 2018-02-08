@@ -7,7 +7,8 @@ single molecule FRET transitions without trajectories” [(1)](#Schrangl2018),
 which was used to perform the data anlysis for the article.
 
 The documentation can be found at https://schuetzgroup.github.io/fret-tester/.
-There is a Jupyter notebook containing a tutorial.
+There is also a
+[Jupyter notebook containing a tutorial](https://github.com/schuetzgroup/fret-tester/blob/master/Tutorial.ipynb).
 
 
 Requirements
