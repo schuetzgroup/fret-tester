@@ -8,13 +8,16 @@ Documentation of the `fret-tester` python package
 
 This is a software implementation of the smFRET kinetics analysis method
 described in the Journal of Chemical Physics article “Kinetic analysis of
-single molecule FRET transitions without trajectories” [Schrangl2018]_, which
-was used to perform all data analyses in the article.
+single molecule FRET transitions without trajectories” [1]_, which
+was used to perform the data anlysis for the article.
 
 The source code including an extensive tutorial can be found on
 `github <https://github.com/schuetzgroup/fret-tester>`_.
 
-.. [Schrangl2018] TODO
+.. [1] Schrangl, Lukas; Göhring, Janett; Schütz, Gerhard J. (2018):
+  “Kinetic analysis of single molecule FRET transitions without trajectories.”
+  In: The Journal of Chemical Physics, 148 (2018), H. 12, p. 123328.
+  Available at: `DOI: 10.1063/1.5006038 <https://doi.org/10.1063/1.5006038>`_
 
 
 .. toctree::
