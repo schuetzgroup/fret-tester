@@ -401,7 +401,7 @@ class Plotter2D(_PlotterBase):
         return m
 
     def plot_series(self, test_times, p_vals, truths=None, ax_or_subspec=None,
-                    fig=None, nrows=1):
+                    fig=None, nrows=1, cbar_steal=False):
         """Draw a series of 2D plots
 
         Use :py:meth:`plot` to draw a series of plots on a grid.
@@ -427,26 +427,18 @@ class Plotter2D(_PlotterBase):
             `None`.
         nrows : int, optional
             Number of rows. Defaults to 1.
+        cbar_steal : bool, optional
+            If `True`, steal space for the color bar from other axes (i.e.,
+            create the color bar using the ``ax=[<axes>]`` argument). If
+            `False`, create an additional Axes and pass that to the color bar
+            using the ``cax`` argument. Defaults to False.
 
         Returns
         -------
         ax : list of matplotlib.axes.Axes
             Axes for p-value plots.
-        colorbar_ax : matplotlib.axes.Axes
-            Axes for colorbar.
-        fig : matplotlib.figure.Figure or None
-            Only effective if  `ax_or_subspec` is a :py:class:`SubplotSpec`
-            instance. If `None`, use ``matplotlib.pyplot.gcf()``. Defaults to
-            `None`.
-        nrows : int, optional
-            Number of rows. Defaults to 1.
-
-        Returns
-        -------
-        ax : list of matplotlib.axes.Axes
-            Axes for p-value plots.
-        colorbar_ax : matplotlib.axes.Axes
-            Axes for colorbar.
+        cbar : matplotlib.colorbar.Colorbar
+            Color bar.
         """
         n = len(test_times)
         ncols = math.ceil(n / nrows)
@@ -457,7 +449,8 @@ class Plotter2D(_PlotterBase):
         if fig is None:
             fig = plt.gcf()
 
-        ax, colorbar_ax = self.make_axes(nrows, n, ax_or_subspec, fig, "on")
+        ax, colorbar_ax = self.make_axes(nrows, n, ax_or_subspec, fig,
+                                         "off" if cbar_steal else "on")
 
         for a, tt, p, tr in zip(ax, test_times, p_vals, truths):
             m = self.plot(tt, p, tr, a)
@@ -469,7 +462,10 @@ class Plotter2D(_PlotterBase):
             a.xaxis.label.set_visible(False)
             a.tick_params("x", which="both", labeltop=False, labelbottom=False)
 
-        fig.colorbar(m, cax=colorbar_ax)
-        colorbar_ax.set_ylabel(r"$p$-value")
+        if cbar_steal:
+            cbar = fig.colorbar(m, ax=ax)
+        else:
+            cbar = fig.colorbar(m, cax=colorbar_ax)
+        cbar.set_label(r"$p$-value")
 
-        return ax, colorbar_ax
+        return ax, cbar
